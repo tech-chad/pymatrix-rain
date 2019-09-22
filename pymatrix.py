@@ -15,6 +15,10 @@ char_list = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n
              "?", ]
 
 
+class PyMatrixError(Exception):
+    pass
+
+
 class MatrixLine:
     all_x_locations_list = []
     screen_size_y = 0
@@ -81,6 +85,9 @@ def matrix_loop(screen):
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
     size_y, size_x = screen.getmaxyx()
+    if size_y <= 3:
+        raise PyMatrixError("Error screen height is to short.")
+
     MatrixLine.set_screen_size(size_y, size_x)
     curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
@@ -92,6 +99,18 @@ def matrix_loop(screen):
             line_list.append(MatrixLine())
 
         screen.clear()
+        resize = curses.is_term_resized(size_y, size_x)
+        if resize is True:
+            size_y, size_x = screen.getmaxyx()
+            if size_y <= 3:
+                raise PyMatrixError("Error screen height is to short.")
+            MatrixLine.reset_lines()
+            MatrixLine.set_screen_size(size_y, size_x)
+            line_list.clear()
+            screen.clear()
+            screen.refresh()
+            continue
+
         remove_list = []
         for line in line_list:
             lead, body = line.get_line()
@@ -117,7 +136,11 @@ def matrix_loop(screen):
 
 
 def main():
-    curses.wrapper(matrix_loop)
+    try:
+        curses.wrapper(matrix_loop)
+    except PyMatrixError as e:
+        print(e)
+        return
 
 
 if __name__ == "__main__":
