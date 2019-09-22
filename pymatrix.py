@@ -28,8 +28,7 @@ class MatrixLine:
     def __init__(self):
         self.x_location = 0
         self._set_random_x_location()
-        self.line_length = randint(3, MatrixLine.screen_size_y) - 1
-        self.char_location_list = []
+        self.line_length = randint(5, MatrixLine.screen_size_y) - 3
         self.lead_char_on = False if randint(0, 9) < 2 else True
         self.y_location_lead = 0
         self.y_location_tail = 0 - self.line_length
@@ -39,10 +38,10 @@ class MatrixLine:
             lead = self.y_location_lead, self.x_location, choice(MatrixLine.char_list)
         else:
             lead = False
-
-        if self.line_length >= self.y_location_lead >= 1:
+        if self.y_location_lead == 0:
+            loc_char = False
+        elif self.line_length >= self.y_location_lead >= 1:
             loc_char = [self.y_location_lead - 1, self.x_location, choice(MatrixLine.char_list)]
-            self.char_location_list.append(loc_char)
 
         elif self.y_location_lead <= MatrixLine.screen_size_y:
             if self.x_location in MatrixLine.all_x_locations_list:
@@ -50,18 +49,20 @@ class MatrixLine:
                 MatrixLine.all_x_locations_list.remove(self.x_location)
 
             loc_char = [self.y_location_lead - 1, self.x_location, choice(MatrixLine.char_list)]
-            self.char_location_list.append(loc_char)
-            self.char_location_list.pop(0)
 
         elif self.y_location_tail < MatrixLine.screen_size_y:
-            self.char_location_list.pop(0)
+            loc_char = False
         else:
-            # line is done
-            return False, None
+            return False, None, False
+
+        if self.y_location_tail >= 0:
+            remove = self.y_location_tail, self.x_location
+        else:
+            remove = False
 
         self.y_location_lead += 1
         self.y_location_tail += 1
-        return lead, self.char_location_list
+        return lead, loc_char, remove
 
     def _set_random_x_location(self):
         while True:
@@ -95,10 +96,9 @@ def matrix_loop(screen):
     line_list = []
 
     while True:
-        if len(line_list) < 12:
+        if len(line_list) < size_x:
             line_list.append(MatrixLine())
 
-        screen.clear()
         resize = curses.is_term_resized(size_y, size_x)
         if resize is True:
             size_y, size_x = screen.getmaxyx()
@@ -113,26 +113,27 @@ def matrix_loop(screen):
 
         remove_list = []
         for line in line_list:
-            lead, body = line.get_line()
-
-            # lead = line.get_lead()
+            lead, current, rm = line.get_line()
             if lead:
                 screen.addstr(lead[0], lead[1], lead[2], curses.color_pair(1) + curses.A_BOLD)
-            # body = line.get_line()
-            if body:
-                for b in body:
-                    screen.addstr(b[0], b[1], b[2], curses.color_pair(2))
-            elif body is None:
+            if current:
+                screen.addstr(current[0], current[1], current[2], curses.color_pair(2))
+
+            if current is None:
                 remove_list.append(line)
-        for rem in remove_list:
-            line_list.remove(rem)
+            if rm:
+                screen.addstr(rm[0], rm[1], " ")
+
+        for r in remove_list:
+            line_list.remove(r)
+
         screen.refresh()
         ch = screen.getch()
         if ch in [81, 113]:
             screen.clear()
             screen.refresh()
             break
-        sleep(.05)
+        sleep(0.04)
 
 
 def main():

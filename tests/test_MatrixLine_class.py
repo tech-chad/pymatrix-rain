@@ -41,7 +41,7 @@ def test_matrix_line_all_x_locations_list(set_screen_size):
 
     while True:
         for line in line_list:
-            _, b = line.get_line()
+            _, b, _ = line.get_line()
             if b is None:
                 line_list.remove(line)
         if len(line_list) == 0:
@@ -63,19 +63,21 @@ def test_matrix_line_get_line_first_run_lead_true(setup_matrix_line):
     line = setup_matrix_line()
     with mock.patch.object(line, "lead_char_on", True):
         with mock.patch.object(line, "x_location", 2):
-            lead, body = line.get_line()
+            lead, body, rm = line.get_line()
             assert lead == (0, 2, "T")
             # assert lead[0] == 0
-            assert body == []
+            assert body is False
+            assert rm is False
 
 
 def test_matrix_line_get_line_first_run_lead_false(set_screen_size):
     """ Lead char is False"""
     line = pymatrix.MatrixLine()
     with mock.patch.object(line, "lead_char_on", False):
-        lead, body = line.get_line()
+        lead, body, rm = line.get_line()
         assert lead is False
-        assert body == []
+        assert body is False
+        assert rm is False
 
 
 def test_matrix_line_get_line_second_run_lead_true(setup_matrix_line):
@@ -83,9 +85,10 @@ def test_matrix_line_get_line_second_run_lead_true(setup_matrix_line):
     with mock.patch.object(line, "lead_char_on", True):
         with mock.patch.object(line, "x_location", 2):
             line.get_line()  # first run
-            lead, body = line.get_line()  # second run
+            lead, body, rm = line.get_line()  # second run
             assert lead == (1, 2, "T")
-            assert body == [[0, 2, "T"]]
+            assert body == [0, 2, "T"]
+            assert rm is False
 
 
 def test_matrix_line_get_line_third_run_lead_true(setup_matrix_line):
@@ -94,9 +97,10 @@ def test_matrix_line_get_line_third_run_lead_true(setup_matrix_line):
         with mock.patch.object(line, "x_location", 2):
             for _ in range(2):
                 line.get_line()
-            lead, body = line.get_line()  # third run
+            lead, body, rm = line.get_line()  # third run
             assert lead == (2, 2, "T")
-            assert body == [[0, 2, "T"], [1, 2, "T"]]
+            assert body == [1, 2, "T"]
+            assert rm is False
 
 
 def test_matrix_line_get_line_lead_off_screen(setup_matrix_line):
@@ -105,7 +109,7 @@ def test_matrix_line_get_line_lead_off_screen(setup_matrix_line):
         with mock.patch.object(line, "x_location", 2):
             for _ in range(49):
                 line.get_line()
-            lead, _ = line.get_line()
+            lead, _, _ = line.get_line()
             assert lead is False
 
 
