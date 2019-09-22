@@ -1,6 +1,7 @@
 """ Matrix style rain using Python 3 and curses. """
-
+import argparse
 import curses
+import sys
 from random import choice, randint
 from time import sleep
 
@@ -13,6 +14,9 @@ char_list = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n
              "4", "5", "6", "7", "8", "9", "!", "#", "$", "%", "^", "&", "(", ")",
              "-", "+", "=", "[", "]", "{", "}", "|", ";", ":", "<", ">", ",", ".",
              "?", ]
+
+delay_speed = {0: 0.005, 1: 0.01, 2: 0.025, 3: 0.04, 4: 0.055, 5: 0.07,
+               6: 0.085, 7: 0.1, 8: 0.115, 9: 0.13}
 
 
 class PyMatrixError(Exception):
@@ -82,7 +86,7 @@ class MatrixLine:
         MatrixLine.all_x_locations_list.clear()
 
 
-def matrix_loop(screen):
+def matrix_loop(screen, delay):
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
     size_y, size_x = screen.getmaxyx()
@@ -133,16 +137,40 @@ def matrix_loop(screen):
             screen.clear()
             screen.refresh()
             break
-        sleep(0.04)
+        sleep(delay_speed[delay])
 
 
-def main():
+def positive_int_zero_to_nine(value):
+    """
+    Used with argparse module.
+    Checks to see if value is positive int between 0 and 10.
+    """
     try:
-        curses.wrapper(matrix_loop)
+        int_value = int(value)
+        if int_value < 0 or int_value >= 10:
+            raise argparse.ArgumentTypeError(f"{value} is an invalid positive "
+                                             f"int value 0 to 9")
+        return int_value
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{value} is an invalid positive int "
+                                         f"value 0 to 9")
+
+
+def argument_parsing(argv):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", dest="delay", type=positive_int_zero_to_nine,
+                        default=4, help="Set the delay (speed) 0: Fast, 4: Default, 9: Slow")
+    return parser.parse_args(argv)
+
+
+def main(argv):
+    args = argument_parsing(argv)
+    try:
+        curses.wrapper(matrix_loop, args.delay)
     except PyMatrixError as e:
         print(e)
         return
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
