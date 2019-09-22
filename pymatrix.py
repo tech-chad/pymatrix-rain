@@ -85,6 +85,13 @@ class MatrixLine:
     def reset_lines(cls):
         MatrixLine.all_x_locations_list.clear()
 
+    @classmethod
+    def test_mode(cls):
+        if MatrixLine.char_list == ["T"]:
+            MatrixLine.char_list = char_list
+        else:
+            MatrixLine.char_list = ["T"]
+
 
 def matrix_loop(screen, delay):
     curses.curs_set(0)  # Set the cursor to off.
@@ -160,11 +167,15 @@ def argument_parsing(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", dest="delay", type=positive_int_zero_to_nine,
                         default=4, help="Set the delay (speed) 0: Fast, 4: Default, 9: Slow")
+
+    parser.add_argument("--test_mode", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args(argv)
 
 
 def main(argv):
     args = argument_parsing(argv)
+    if args.test_mode:
+        MatrixLine.test_mode()
     try:
         curses.wrapper(matrix_loop, args.delay)
     except PyMatrixError as e:

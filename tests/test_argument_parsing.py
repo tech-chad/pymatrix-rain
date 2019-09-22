@@ -14,6 +14,14 @@ def test_argument_parsing_delay(test_values, expected_results):
     assert result.delay == expected_results
 
 
+@pytest.mark.parametrize("test_values, expected_results", [
+    ([], False), (["--test_mode"], True)
+])
+def test_argument_parsing_test_mode(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.test_mode == expected_results
+
+
 # testing helper functions
 
 @pytest.mark.parametrize("test_values, expected_results", [

@@ -113,6 +113,12 @@ def test_matrix_line_get_line_lead_off_screen(setup_matrix_line):
             assert lead is False
 
 
+def test_matrix_line_test_mode():
+    assert len(pymatrix.MatrixLine.char_list) > 1
+    pymatrix.MatrixLine.test_mode()
+    assert len(pymatrix.MatrixLine.char_list) == 1
+    pymatrix.MatrixLine.test_mode()
+    assert len(pymatrix.MatrixLine.char_list) > 1
 
 
 
