@@ -93,7 +93,7 @@ class MatrixLine:
             MatrixLine.char_list = ["T"]
 
 
-def matrix_loop(screen, delay, bold_char):
+def matrix_loop(screen, delay, bold_char, bold_all):
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
     size_y, size_x = screen.getmaxyx()
@@ -129,7 +129,7 @@ def matrix_loop(screen, delay, bold_char):
                 screen.addstr(lead[0], lead[1], lead[2],
                               curses.color_pair(1) + curses.A_BOLD)
             if current:
-                if bold_char and randint(0, 9) <= 2:
+                if bold_all or bold_char and randint(0, 9) <= 2:
                     screen.addstr(current[0], current[1], current[2],
                                   curses.color_pair(2) + curses.A_BOLD)
                 else:
@@ -174,6 +174,8 @@ def argument_parsing(argv):
                         default=4, help="Set the delay (speed) 0: Fast, 4: Default, 9: Slow")
     parser.add_argument("-b", dest="bold_on", action="store_true",
                         help="Bold characters on")
+    parser.add_argument("-B", dest="bold_all", action="store_true",
+                        help="All bold characters (overrides -b)")
 
     parser.add_argument("--test_mode", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args(argv)
@@ -184,7 +186,7 @@ def main(argv):
     if args.test_mode:
         MatrixLine.test_mode()
     try:
-        curses.wrapper(matrix_loop, args.delay, args.bold_on)
+        curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all)
     except PyMatrixError as e:
         print(e)
         return

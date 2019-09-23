@@ -30,6 +30,14 @@ def test_argument_parsing_bold_on(test_values, expected_results):
     assert result.bold_on == expected_results
 
 
+@pytest.mark.parametrize("test_values, expected_results", [
+    ([], False), (["-B"], True)
+])
+def test_argument_parsing_bold_all(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.bold_all == expected_results
+
+
 # testing helper functions
 
 @pytest.mark.parametrize("test_values, expected_results", [
