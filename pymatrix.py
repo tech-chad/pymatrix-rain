@@ -93,7 +93,7 @@ class MatrixLine:
             MatrixLine.char_list = ["T"]
 
 
-def matrix_loop(screen, delay):
+def matrix_loop(screen, delay, bold_char):
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
     size_y, size_x = screen.getmaxyx()
@@ -126,9 +126,14 @@ def matrix_loop(screen, delay):
         for line in line_list:
             lead, current, rm = line.get_line()
             if lead:
-                screen.addstr(lead[0], lead[1], lead[2], curses.color_pair(1) + curses.A_BOLD)
+                screen.addstr(lead[0], lead[1], lead[2],
+                              curses.color_pair(1) + curses.A_BOLD)
             if current:
-                screen.addstr(current[0], current[1], current[2], curses.color_pair(2))
+                if bold_char and randint(0, 9) <= 2:
+                    screen.addstr(current[0], current[1], current[2],
+                                  curses.color_pair(2) + curses.A_BOLD)
+                else:
+                    screen.addstr(current[0], current[1], current[2], curses.color_pair(2))
 
             if current is None:
                 remove_list.append(line)
@@ -167,6 +172,8 @@ def argument_parsing(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", dest="delay", type=positive_int_zero_to_nine,
                         default=4, help="Set the delay (speed) 0: Fast, 4: Default, 9: Slow")
+    parser.add_argument("-b", dest="bold_on", action="store_true",
+                        help="Bold characters on")
 
     parser.add_argument("--test_mode", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args(argv)
@@ -177,7 +184,7 @@ def main(argv):
     if args.test_mode:
         MatrixLine.test_mode()
     try:
-        curses.wrapper(matrix_loop, args.delay)
+        curses.wrapper(matrix_loop, args.delay, args.bold_on)
     except PyMatrixError as e:
         print(e)
         return
