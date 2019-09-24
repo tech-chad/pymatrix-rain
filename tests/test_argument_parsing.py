@@ -56,6 +56,14 @@ def test_argument_parsing_color(test_values, expected_results):
     assert result.color == expected_results
 
 
+@pytest.mark.parametrize("test_values, expected_results", [
+    ([], 0), (["-S1"], 1), (["-S5"], 5), (["-S", "20"], 20)
+])
+def test_argument_parsing_start_timer(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.start_timer == expected_results
+
+
 # testing helper functions
 
 @pytest.mark.parametrize("test_values, expected_results", [
@@ -93,3 +101,21 @@ def test_color_type_normal(test_values, expected_results):
 def test_color_type_error(test_values):
     with pytest.raises(pymatrix.argparse.ArgumentTypeError):
         pymatrix.color_type(test_values)
+
+
+@pytest.mark.parametrize("test_values, expected_results", [
+    ("1", 1), ("2", 2), ("6", 6), ("20", 20), ("500", 500)
+])
+def test_positive_int_normal(test_values, expected_results):
+    result = pymatrix.positive_int(test_values)
+    assert result == expected_results
+
+
+@pytest.mark.parametrize("test_values", [
+    "0", "-3", "1.3", "0.4", "10.4", "a", "b", "", " ", "$", "time32"
+])
+def test_positive_int_error(test_values):
+    with pytest.raises(pymatrix.argparse.ArgumentTypeError):
+        pymatrix.positive_int(test_values)
+
+

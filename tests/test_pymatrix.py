@@ -53,3 +53,9 @@ def test_pymatrix_screen_resize_height_too_short():
         h.tmux.execute_command('split-window', '-vt0', '-l', 47)
         h.await_text("Error screen height is to short.")
 
+
+def test_pymatrix_start_timer():
+    with Runner(*pymatrix_run("--test_mode", "-S2")) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+

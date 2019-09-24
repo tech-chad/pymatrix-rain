@@ -193,6 +193,21 @@ def color_type(value):
     raise argparse.ArgumentTypeError(f"{value} is an invalid color name")
 
 
+def positive_int(value):
+    """
+    Used by argparse module.
+    Checks to see if the value is positive.
+    """
+    try:
+        int_value = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
+    else:
+        if int_value <= 0:
+            raise argparse.ArgumentTypeError(f"{value} is an invalid positive int value")
+    return int_value
+
+
 def argument_parsing(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", dest="delay", type=positive_int_zero_to_nine,
@@ -203,6 +218,8 @@ def argument_parsing(argv):
                         help="All bold characters (overrides -b)")
     parser.add_argument("-s", dest="screen_saver", action="store_true",
                         help="Screen saver mode.  Any key will exit.")
+    parser.add_argument("-S", dest="start_timer", type=positive_int, default=0,
+                        metavar="SECONDS", help="Set start timer in seconds")
     parser.add_argument("-C", dest="color", type=color_type, default="green",
                         help="Set color.  Default is green")
 
@@ -214,6 +231,7 @@ def main(argv):
     args = argument_parsing(argv)
     if args.test_mode:
         MatrixLine.test_mode()
+    sleep(args.start_timer)
     try:
         curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
                        args.screen_saver, args.color)
