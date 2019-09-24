@@ -230,6 +230,8 @@ def argument_parsing(argv):
                         metavar="SECONDS", help="Set run timer in seconds")
     parser.add_argument("-C", dest="color", type=color_type, default="green",
                         help="Set color.  Default is green")
+    parser.add_argument("--list_colors", action="store_true",
+                        help="Show available colors and exit. ")
 
     parser.add_argument("--test_mode", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args(argv)
@@ -237,6 +239,11 @@ def argument_parsing(argv):
 
 def main(argv):
     args = argument_parsing(argv)
+
+    if args.list_colors:
+        print(*color_numbers.keys())
+        return
+
     if args.test_mode:
         MatrixLine.test_mode()
     sleep(args.start_timer)

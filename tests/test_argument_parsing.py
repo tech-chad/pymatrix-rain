@@ -72,6 +72,14 @@ def test_argument_parsing_run_timer(test_values, expected_results):
     assert result.run_timer == expected_results
 
 
+@pytest.mark.parametrize("test_values, expected_results", [
+    ([], False), (["--list_colors"], True)
+])
+def test_argument_parsing_list_colors(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.list_colors == expected_results
+
+
 # testing helper functions
 
 @pytest.mark.parametrize("test_values, expected_results", [

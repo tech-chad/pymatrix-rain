@@ -76,3 +76,7 @@ def test_pymatrix_quit_with_run_timer(test_key):
         h.await_exit()
 
 
+def test_pymatrix_list_colors():
+    with Runner(*pymatrix_run("--list_colors")) as h:
+        h.await_text("red green blue yellow magenta cyan white")
+
