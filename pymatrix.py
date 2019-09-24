@@ -97,7 +97,8 @@ class MatrixLine:
             MatrixLine.char_list = ["T"]
 
 
-def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_timer):
+def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_timer,
+                lead_color):
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
     setup_curses_colors()
@@ -132,7 +133,7 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
             lead, current, rm = line.get_line()
             if lead:
                 screen.addstr(lead[0], lead[1], lead[2],
-                              curses.color_pair(color_numbers["white"]) + curses.A_BOLD)
+                              curses.color_pair(color_numbers[lead_color]) + curses.A_BOLD)
             if current:
                 if bold_all or bold_char and randint(0, 9) <= 2:
                     screen.addstr(current[0], current[1], current[2],
@@ -230,6 +231,8 @@ def argument_parsing(argv):
                         metavar="SECONDS", help="Set run timer in seconds")
     parser.add_argument("-C", dest="color", type=color_type, default="green",
                         help="Set color.  Default is green")
+    parser.add_argument("-L", dest="lead_color", type=color_type, default="white",
+                        help="Set the lead character color.  Default is white")
     parser.add_argument("--list_colors", action="store_true",
                         help="Show available colors and exit. ")
 
@@ -249,7 +252,7 @@ def main(argv):
     sleep(args.start_timer)
     try:
         curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
-                       args.screen_saver, args.color, args.run_timer)
+                       args.screen_saver, args.color, args.run_timer, args.lead_color)
     except PyMatrixError as e:
         print(e)
         return

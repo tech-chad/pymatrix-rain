@@ -57,6 +57,16 @@ def test_argument_parsing_color(test_values, expected_results):
 
 
 @pytest.mark.parametrize("test_values, expected_results", [
+    (["-Lred"], "red"), (["-L", "Green"], "green"), (["-L", "BLUE"], "blue"),
+    (["-LyeLLOW"], "yellow"), (["-L", "magenta"], "magenta"),
+    (["-LCyan"], "cyan"), (["-Lwhite"], "white"), ([], "white")
+])
+def test_argument_parsing_lead_color(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.lead_color == expected_results
+
+
+@pytest.mark.parametrize("test_values, expected_results", [
     ([], 0), (["-S1"], 1), (["-S5"], 5), (["-S", "20"], 20)
 ])
 def test_argument_parsing_start_timer(test_values, expected_results):
