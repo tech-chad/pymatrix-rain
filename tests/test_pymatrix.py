@@ -59,3 +59,20 @@ def test_pymatrix_start_timer():
         h.default_timeout = 3
         h.await_text("T")
 
+
+def test_pymatrix_run_timer():
+    with Runner(*pymatrix_run("--test_mode", "-R2")) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        h.await_exit()
+
+
+@pytest.mark.parametrize("test_key", ["Q", "q"])
+def test_pymatrix_quit_with_run_timer(test_key):
+    with Runner(*pymatrix_run("--test_mode", "-R3")) as h:
+        h.await_text("T")
+        h.write(test_key)
+        h.press("Enter")
+        h.await_exit()
+
+

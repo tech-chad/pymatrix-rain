@@ -64,6 +64,14 @@ def test_argument_parsing_start_timer(test_values, expected_results):
     assert result.start_timer == expected_results
 
 
+@pytest.mark.parametrize("test_values, expected_results", [
+    ([], 0), (["-R1"], 1), (["-R5"], 5), (["-R", "20"], 20)
+])
+def test_argument_parsing_run_timer(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.run_timer == expected_results
+
+
 # testing helper functions
 
 @pytest.mark.parametrize("test_values, expected_results", [

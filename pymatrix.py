@@ -2,6 +2,7 @@
 import argparse
 import curses
 import sys
+import datetime
 from random import choice, randint
 from time import sleep
 
@@ -96,7 +97,7 @@ class MatrixLine:
             MatrixLine.char_list = ["T"]
 
 
-def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color):
+def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_timer):
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
     setup_curses_colors()
@@ -109,6 +110,7 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color):
 
     line_list = []
 
+    end_time = datetime.datetime.now() + datetime.timedelta(seconds=run_timer)
     while True:
         if len(line_list) < size_x:
             line_list.append(MatrixLine())
@@ -148,6 +150,10 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color):
             line_list.remove(r)
 
         screen.refresh()
+        if run_timer and datetime.datetime.now() >= end_time:
+            screen.clear()
+            screen.refresh()
+            break
         ch = screen.getch()
         if screen_saver and ch != -1:
             screen.clear()
@@ -220,6 +226,8 @@ def argument_parsing(argv):
                         help="Screen saver mode.  Any key will exit.")
     parser.add_argument("-S", dest="start_timer", type=positive_int, default=0,
                         metavar="SECONDS", help="Set start timer in seconds")
+    parser.add_argument("-R", dest="run_timer", type=positive_int, default=0,
+                        metavar="SECONDS", help="Set run timer in seconds")
     parser.add_argument("-C", dest="color", type=color_type, default="green",
                         help="Set color.  Default is green")
 
@@ -234,7 +242,7 @@ def main(argv):
     sleep(args.start_timer)
     try:
         curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
-                       args.screen_saver, args.color)
+                       args.screen_saver, args.color, args.run_timer)
     except PyMatrixError as e:
         print(e)
         return
