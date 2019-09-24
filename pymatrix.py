@@ -18,6 +18,9 @@ char_list = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n
 delay_speed = {0: 0.005, 1: 0.01, 2: 0.025, 3: 0.04, 4: 0.055, 5: 0.07,
                6: 0.085, 7: 0.1, 8: 0.115, 9: 0.13}
 
+color_numbers = {"red": 1, "green": 2, "blue": 3, "yellow": 4, "magenta": 5,
+                 "cyan": 6, "white": 7}
+
 
 class PyMatrixError(Exception):
     pass
@@ -93,16 +96,16 @@ class MatrixLine:
             MatrixLine.char_list = ["T"]
 
 
-def matrix_loop(screen, delay, bold_char, bold_all, screen_saver):
+def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color):
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
+    setup_curses_colors()
+
     size_y, size_x = screen.getmaxyx()
     if size_y <= 3:
         raise PyMatrixError("Error screen height is to short.")
 
     MatrixLine.set_screen_size(size_y, size_x)
-    curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
     line_list = []
 
@@ -127,13 +130,14 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver):
             lead, current, rm = line.get_line()
             if lead:
                 screen.addstr(lead[0], lead[1], lead[2],
-                              curses.color_pair(1) + curses.A_BOLD)
+                              curses.color_pair(color_numbers["white"]) + curses.A_BOLD)
             if current:
                 if bold_all or bold_char and randint(0, 9) <= 2:
                     screen.addstr(current[0], current[1], current[2],
-                                  curses.color_pair(2) + curses.A_BOLD)
+                                  curses.color_pair(color_numbers[color]) + curses.A_BOLD)
                 else:
-                    screen.addstr(current[0], current[1], current[2], curses.color_pair(2))
+                    screen.addstr(current[0], current[1], current[2],
+                                  curses.color_pair(color_numbers[color]))
 
             if current is None:
                 remove_list.append(line)
@@ -156,6 +160,16 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver):
         sleep(delay_speed[delay])
 
 
+def setup_curses_colors():
+    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)
+    curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+    curses.init_pair(5, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+    curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLACK)
+    curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLACK)
+
+
 def positive_int_zero_to_nine(value):
     """
     Used with argparse module.
@@ -172,6 +186,13 @@ def positive_int_zero_to_nine(value):
                                          f"value 0 to 9")
 
 
+def color_type(value):
+    lower_value = value.lower()
+    if lower_value in color_numbers.keys():
+        return lower_value
+    raise argparse.ArgumentTypeError(f"{value} is an invalid color name")
+
+
 def argument_parsing(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", dest="delay", type=positive_int_zero_to_nine,
@@ -182,6 +203,8 @@ def argument_parsing(argv):
                         help="All bold characters (overrides -b)")
     parser.add_argument("-s", dest="screen_saver", action="store_true",
                         help="Screen saver mode.  Any key will exit.")
+    parser.add_argument("-C", dest="color", type=color_type, default="green",
+                        help="Set color.  Default is green")
 
     parser.add_argument("--test_mode", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args(argv)
@@ -193,7 +216,7 @@ def main(argv):
         MatrixLine.test_mode()
     try:
         curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
-                       args.screen_saver)
+                       args.screen_saver, args.color)
     except PyMatrixError as e:
         print(e)
         return

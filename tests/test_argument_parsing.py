@@ -46,6 +46,16 @@ def test_argument_parsing_screen_save_mode(test_values, expected_results):
     assert result.screen_saver == expected_results
 
 
+@pytest.mark.parametrize("test_values, expected_results", [
+    (["-Cred"], "red"), (["-C", "Green"], "green"), (["-C", "BLUE"], "blue"),
+    (["-CyeLLOW"], "yellow"), (["-C", "magenta"], "magenta"),
+    (["-CCyan"], "cyan"), (["-Cwhite"], "white"), ([], "green")
+])
+def test_argument_parsing_color(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.color == expected_results
+
+
 # testing helper functions
 
 @pytest.mark.parametrize("test_values, expected_results", [
@@ -65,3 +75,21 @@ def test_positive_int_zero_to_nine_error(test_values):
     """ Testing delay_positive_int will raise an error. """
     with pytest.raises(pymatrix.argparse.ArgumentTypeError):
         pymatrix.positive_int_zero_to_nine(test_values)
+
+
+@pytest.mark.parametrize("test_values, expected_results", [
+    ("red", "red"), ("Green", "green"), ("BLUE", "blue"),
+    ("yeLLOW", "yellow"), ("magenta", "magenta"),
+    ("Cyan", "cyan"), ("whiTe", "white")
+])
+def test_color_type_normal(test_values, expected_results):
+    result = pymatrix.color_type(test_values)
+    assert result
+
+
+@pytest.mark.parametrize("test_values", [
+    "orange", "12", "who", "<>", "", " ", "ter8934", "834DFD"
+])
+def test_color_type_error(test_values):
+    with pytest.raises(pymatrix.argparse.ArgumentTypeError):
+        pymatrix.color_type(test_values)
