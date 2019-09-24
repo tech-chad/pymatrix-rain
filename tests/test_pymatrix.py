@@ -24,6 +24,15 @@ def test_pymatrix_quit(test_key):
         h.await_exit()
 
 
+@pytest.mark.parametrize("test_key", ["Q", "q", " ", "8", ":", "*", "M", "b", "I"])
+def test_pymatrix_quit_screen_saver_mode(test_key):
+    with Runner(*pymatrix_run("--test_mode", "-s")) as h:
+        h.await_text("T")
+        h.write(test_key)
+        h.press("Enter")
+        h.await_exit()
+
+
 def test_pymatrix_screen_resize_width_very_narrow():
     with Runner(*pymatrix_run("--test_mode"), width=50, height=50) as h:
         h.await_text("T")

@@ -38,6 +38,14 @@ def test_argument_parsing_bold_all(test_values, expected_results):
     assert result.bold_all == expected_results
 
 
+@pytest.mark.parametrize("test_values, expected_results", [
+    ([], False), (["-s"], True)
+])
+def test_argument_parsing_screen_save_mode(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.screen_saver == expected_results
+
+
 # testing helper functions
 
 @pytest.mark.parametrize("test_values, expected_results", [
