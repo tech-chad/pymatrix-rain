@@ -80,3 +80,8 @@ def test_pymatrix_list_colors():
     with Runner(*pymatrix_run("--list_colors")) as h:
         h.await_text("red green blue yellow magenta cyan white")
 
+
+def test_pymatrix_list_commands():
+    with Runner(*pymatrix_run("--list_commands")) as h:
+        h.await_text("Commands available during run")
+

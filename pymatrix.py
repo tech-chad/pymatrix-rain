@@ -22,6 +22,13 @@ delay_speed = {0: 0.005, 1: 0.01, 2: 0.025, 3: 0.04, 4: 0.055, 5: 0.07,
 color_numbers = {"red": 1, "green": 2, "blue": 3, "yellow": 4, "magenta": 5,
                  "cyan": 6, "white": 7}
 
+curses_ch_codes = {48: 0, 49: 1, 50: 2, 51: 3, 52: 4, 53: 5, 54: 6, 55: 7, 56: 8, 57: 9}
+
+curses_ch_codes_color = {114: "red", 82: "red", 116: "green", 84: "green",
+                         121: "blue", 89: "blue", 117: "yellow", 85: "yellow",
+                         105: "magenta", 73: "magenta", 111: "cyan",
+                         79: "cyan", 112: "white", 80: "white"}
+
 
 class PyMatrixError(Exception):
     pass
@@ -160,10 +167,26 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
             screen.clear()
             screen.refresh()
             break
-        elif ch in [81, 113]:
-            screen.clear()
-            screen.refresh()
-            break
+        elif ch != -1:
+            if ch == 98:
+                bold_char = True
+                bold_all = False
+            elif ch == 66:
+                bold_all = True
+                bold_char = False
+            elif ch in [78, 110]:
+                bold_char = False
+                bold_all = False
+            elif ch in [114, 116, 121, 117, 105, 111, 112]:
+                color = curses_ch_codes_color[ch]
+            elif ch in [82, 84, 89, 85, 73, 79, 80]:
+                lead_color = curses_ch_codes_color[ch]
+            elif ch in [81, 113]:
+                screen.clear()
+                screen.refresh()
+                break
+            elif ch in curses_ch_codes.keys():
+                delay = curses_ch_codes[ch]
         sleep(delay_speed[delay])
 
 
@@ -215,6 +238,16 @@ def positive_int(value):
     return int_value
 
 
+def display_commands():
+    print("Commands available during run")
+    print("0 - 9  Delay time (0-Fast, 4-Default, 9-Slow")
+    print("b      Bold characters on")
+    print("B      Bold all characters")
+    print("n      Bold off (Default)")
+    print("r,t,y,u,i,o,p   Set color")
+    print("R,T,Y,U,I,O,P   Set lead character color")
+
+
 def argument_parsing(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", dest="delay", type=positive_int_zero_to_nine,
@@ -235,6 +268,8 @@ def argument_parsing(argv):
                         help="Set the lead character color.  Default is white")
     parser.add_argument("--list_colors", action="store_true",
                         help="Show available colors and exit. ")
+    parser.add_argument("--list_commands", action="store_true",
+                        help="List Commands and exit")
 
     parser.add_argument("--test_mode", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args(argv)
@@ -245,6 +280,10 @@ def main(argv):
 
     if args.list_colors:
         print(*color_numbers.keys())
+        return
+
+    if args.list_commands:
+        display_commands()
         return
 
     if args.test_mode:
