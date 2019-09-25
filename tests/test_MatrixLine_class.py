@@ -121,6 +121,15 @@ def test_matrix_line_test_mode():
     assert len(pymatrix.MatrixLine.char_list) > 1
 
 
+def test_matrix_line_async_mode():
+    assert pymatrix.MatrixLine.async_scroll is False
+    pymatrix.MatrixLine.async_mode()
+    assert pymatrix.MatrixLine.async_scroll is True
+    pymatrix.MatrixLine.async_mode()
+    assert pymatrix.MatrixLine.async_scroll is False
+
+
+
 
 
 

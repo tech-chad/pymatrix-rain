@@ -39,6 +39,7 @@ class MatrixLine:
     screen_size_y = 0
     screen_size_x = 0
     char_list = char_list
+    async_scroll = False
 
     def __init__(self):
         self.x_location = 0
@@ -47,8 +48,17 @@ class MatrixLine:
         self.lead_char_on = False if randint(0, 9) < 2 else True
         self.y_location_lead = 0
         self.y_location_tail = 0 - self.line_length
+        self.async_scroll_rate = randint(0, 2)
+        self.async_scroll_position = 0
 
     def get_line(self):
+        if MatrixLine.async_scroll:
+            if self.async_scroll_position == self.async_scroll_rate:
+                self.async_scroll_position = 0
+            else:
+                self.async_scroll_position += 1
+                return 0, 0, 0
+
         if self.lead_char_on and self.y_location_lead < MatrixLine.screen_size_y:
             lead = self.y_location_lead, self.x_location, choice(MatrixLine.char_list)
         else:
@@ -103,6 +113,13 @@ class MatrixLine:
         else:
             MatrixLine.char_list = ["T"]
 
+    @classmethod
+    def async_mode(cls):
+        if MatrixLine.async_scroll:
+            MatrixLine.async_scroll = False
+        else:
+            MatrixLine.async_scroll = True
+
 
 def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_timer,
                 lead_color):
@@ -138,6 +155,8 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
         remove_list = []
         for line in line_list:
             lead, current, rm = line.get_line()
+            if lead == current == rm == 0:
+                continue
             if lead:
                 screen.addstr(lead[0], lead[1], lead[2],
                               curses.color_pair(color_numbers[lead_color]) + curses.A_BOLD)
@@ -181,6 +200,8 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
                 color = curses_ch_codes_color[ch]
             elif ch in [82, 84, 89, 85, 73, 79, 80]:
                 lead_color = curses_ch_codes_color[ch]
+            elif ch == 97:
+                MatrixLine.async_mode()
             elif ch in [81, 113]:
                 screen.clear()
                 screen.refresh()
@@ -244,6 +265,7 @@ def display_commands():
     print("b      Bold characters on")
     print("B      Bold all characters")
     print("n      Bold off (Default)")
+    print("a      Asynchronous like scrolling")
     print("r,t,y,u,i,o,p   Set color")
     print("R,T,Y,U,I,O,P   Set lead character color")
 
@@ -258,6 +280,8 @@ def argument_parsing(argv):
                         help="All bold characters (overrides -b)")
     parser.add_argument("-s", dest="screen_saver", action="store_true",
                         help="Screen saver mode.  Any key will exit.")
+    parser.add_argument("-a", dest="async_scroll", action="store_true",
+                        help="enable asynchronous like scrolling")
     parser.add_argument("-S", dest="start_timer", type=positive_int, default=0,
                         metavar="SECONDS", help="Set start timer in seconds")
     parser.add_argument("-R", dest="run_timer", type=positive_int, default=0,
@@ -289,6 +313,10 @@ def main(argv):
     if args.test_mode:
         MatrixLine.test_mode()
     sleep(args.start_timer)
+
+    if args.async_scroll:
+        MatrixLine.async_mode()
+
     try:
         curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
                        args.screen_saver, args.color, args.run_timer, args.lead_color)

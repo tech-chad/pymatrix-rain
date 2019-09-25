@@ -98,6 +98,14 @@ def test_argument_parsing_list_commands(test_values, expected_results):
     assert result.list_commands == expected_results
 
 
+@pytest.mark.parametrize("test_values, expected_results", [
+    ([], False), (["-a"], True)
+])
+def test_argument_parsing_list_commands(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.async_scroll == expected_results
+
+
 # testing helper functions
 
 @pytest.mark.parametrize("test_values, expected_results", [
