@@ -118,18 +118,20 @@ class MatrixLine:
     @classmethod
     def test_mode(cls):
         """ Used to turn on/off test mode for unit testing. """
-        if MatrixLine.char_list == ["T"]:
-            MatrixLine.char_list = char_list
-        else:
-            MatrixLine.char_list = ["T"]
+        MatrixLine.char_list = char_list if MatrixLine.char_list == ["T"] else ["T"]
+        # if MatrixLine.char_list == ["T"]:
+        #     MatrixLine.char_list = char_list
+        # else:
+        #     MatrixLine.char_list = ["T"]
 
     @classmethod
     def async_mode(cls):
         """ Turn Asynchronous like scrolling on/off. """
-        if MatrixLine.async_scroll:
-            MatrixLine.async_scroll = False
-        else:
-            MatrixLine.async_scroll = True
+        MatrixLine.async_scroll = False if MatrixLine.async_scroll is True else True
+        # if MatrixLine.async_scroll:
+        #     MatrixLine.async_scroll = False
+        # else:
+        #     MatrixLine.async_scroll = True
 
 
 def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_timer,
@@ -164,10 +166,9 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
             screen.refresh()
             continue
 
-        remove_list = []
         for line in line_list:
             lead, current, rm = line.get_line()
-            if lead == current == rm == 0:
+            if lead == current == rm == 0:  # use with async scrolling
                 continue
             if lead:
                 screen.addstr(lead[0], lead[1], lead[2],
@@ -181,22 +182,15 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
                                   curses.color_pair(color_numbers[color]))
 
             if current is None:
-                remove_list.append(line)
+                line_list.remove(line)
             if rm:
                 screen.addstr(rm[0], rm[1], " ")
 
-        for r in remove_list:
-            line_list.remove(r)
-
         screen.refresh()
         if run_timer and datetime.datetime.now() >= end_time:
-            screen.clear()
-            screen.refresh()
             break
         ch = screen.getch()
         if screen_saver and ch != -1:
-            screen.clear()
-            screen.refresh()
             break
         elif ch != -1:
             # Commands:
@@ -218,12 +212,13 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
             elif ch == 97:  # a
                 MatrixLine.async_mode()
             elif ch in [81, 113]:  # q or Q
-                screen.clear()
-                screen.refresh()
                 break
             elif ch in curses_ch_codes.keys():
                 delay = curses_ch_codes[ch]
         sleep(delay_speed[delay])
+
+    # screen.clear()
+    # screen.refresh()
 
 
 def setup_curses_colors():
