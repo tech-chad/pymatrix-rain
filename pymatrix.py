@@ -52,6 +52,10 @@ class MatrixLine:
         self.async_scroll_position = 0
 
     def get_line(self):
+        """
+        Gets the lead and next character locations and char and get the
+        location of the next character to remove.
+        """
         if MatrixLine.async_scroll:
             if self.async_scroll_position == self.async_scroll_rate:
                 self.async_scroll_position = 0
@@ -76,8 +80,10 @@ class MatrixLine:
             loc_char = [self.y_location_lead - 1, self.x_location, choice(MatrixLine.char_list)]
 
         elif self.y_location_tail < MatrixLine.screen_size_y:
+            # No more char to add.
             loc_char = False
         else:
+            # Line is done.
             return False, None, False
 
         if self.y_location_tail >= 0:
@@ -90,6 +96,7 @@ class MatrixLine:
         return lead, loc_char, remove
 
     def _set_random_x_location(self):
+        """ Sets the random unused x location for each line."""
         while True:
             x = randint(0, MatrixLine.screen_size_x - 1)
             if x not in MatrixLine.all_x_locations_list:
@@ -99,15 +106,18 @@ class MatrixLine:
 
     @classmethod
     def set_screen_size(cls, y, x):
+        """ Sets the screen size. """
         MatrixLine.screen_size_y = y - 1
         MatrixLine.screen_size_x = x
 
     @classmethod
     def reset_lines(cls):
+        """ Resets to a fresh start. """
         MatrixLine.all_x_locations_list.clear()
 
     @classmethod
     def test_mode(cls):
+        """ Used to turn on/off test mode for unit testing. """
         if MatrixLine.char_list == ["T"]:
             MatrixLine.char_list = char_list
         else:
@@ -115,6 +125,7 @@ class MatrixLine:
 
     @classmethod
     def async_mode(cls):
+        """ Turn Asynchronous like scrolling on/off. """
         if MatrixLine.async_scroll:
             MatrixLine.async_scroll = False
         else:
@@ -123,6 +134,7 @@ class MatrixLine:
 
 def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_timer,
                 lead_color):
+    """ Main loop. """
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
     setup_curses_colors()
@@ -187,22 +199,25 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
             screen.refresh()
             break
         elif ch != -1:
-            if ch == 98:
+            # Commands:
+            if ch == 98:  # a
                 bold_char = True
                 bold_all = False
-            elif ch == 66:
+            elif ch == 66:  # A
                 bold_all = True
                 bold_char = False
-            elif ch in [78, 110]:
+            elif ch in [78, 110]:  # n or N
                 bold_char = False
                 bold_all = False
             elif ch in [114, 116, 121, 117, 105, 111, 112]:
+                # r, t, y, u, i, o, p
                 color = curses_ch_codes_color[ch]
             elif ch in [82, 84, 89, 85, 73, 79, 80]:
+                # R, T, Y, U, I, O, P
                 lead_color = curses_ch_codes_color[ch]
-            elif ch == 97:
+            elif ch == 97:  # a
                 MatrixLine.async_mode()
-            elif ch in [81, 113]:
+            elif ch in [81, 113]:  # q or Q
                 screen.clear()
                 screen.refresh()
                 break
@@ -212,6 +227,7 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
 
 
 def setup_curses_colors():
+    """ Init colors pairs in the curses. """
     curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)
@@ -223,7 +239,7 @@ def setup_curses_colors():
 
 def positive_int_zero_to_nine(value):
     """
-    Used with argparse module.
+    Used with argparse.
     Checks to see if value is positive int between 0 and 10.
     """
     try:
@@ -238,6 +254,11 @@ def positive_int_zero_to_nine(value):
 
 
 def color_type(value):
+    """
+    Used with argparse
+    Checks to see if the value is a valid color and returns
+    the lower case color name.
+    """
     lower_value = value.lower()
     if lower_value in color_numbers.keys():
         return lower_value
@@ -246,7 +267,7 @@ def color_type(value):
 
 def positive_int(value):
     """
-    Used by argparse module.
+    Used by argparse.
     Checks to see if the value is positive.
     """
     try:
@@ -271,6 +292,7 @@ def display_commands():
 
 
 def argument_parsing(argv):
+    """ Command line argument parsing. """
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", dest="delay", type=positive_int_zero_to_nine,
                         default=4, help="Set the delay (speed) 0: Fast, 4: Default, 9: Slow")
