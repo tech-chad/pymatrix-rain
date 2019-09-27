@@ -36,7 +36,7 @@ def test_pymatrix_quit_screen_saver_mode(test_key):
 def test_pymatrix_screen_resize_width_very_narrow():
     with Runner(*pymatrix_run("--test_mode"), width=50, height=50) as h:
         h.await_text("T")
-        h.tmux.execute_command('split-window', '-ht0', '-l', 48)
+        h.tmux.execute_command('split-window', '-ht0', '-l', 47)
         h.await_text("T")
 
 

@@ -151,7 +151,8 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
 
     end_time = datetime.datetime.now() + datetime.timedelta(seconds=run_timer)
     while True:
-        if len(line_list) < size_x:
+        if len(line_list) < size_x - 1:
+            line_list.append(MatrixLine())
             line_list.append(MatrixLine())
 
         resize = curses.is_term_resized(size_y, size_x)
