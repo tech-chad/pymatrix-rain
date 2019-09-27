@@ -101,9 +101,25 @@ def test_argument_parsing_list_commands(test_values, expected_results):
 @pytest.mark.parametrize("test_values, expected_results", [
     ([], False), (["-a"], True)
 ])
-def test_argument_parsing_list_commands(test_values, expected_results):
+def test_argument_parsing_async_scroll(test_values, expected_results):
     result = pymatrix.argument_parsing(test_values)
     assert result.async_scroll == expected_results
+
+
+@pytest.mark.parametrize("test_values, expected_results", [
+    ([], False), (["-m"], True)
+])
+def test_argument_parsing_multiple_color_mode(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.multiple_mode == expected_results
+
+
+@pytest.mark.parametrize("test_values, expected_results", [
+    ([], False), (["-M"], True)
+])
+def test_argument_parsing_multiple_random_color_mode(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.random_mode == expected_results
 
 
 # testing helper functions

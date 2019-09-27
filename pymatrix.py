@@ -50,6 +50,7 @@ class MatrixLine:
         self.y_location_tail = 0 - self.line_length
         self.async_scroll_rate = randint(0, 2)
         self.async_scroll_position = 0
+        self.random_line_color = choice(list(color_numbers.keys()))
 
     def get_line(self):
         """
@@ -95,6 +96,9 @@ class MatrixLine:
         self.y_location_tail += 1
         return lead, loc_char, remove
 
+    def get_line_color(self):
+        return self.random_line_color
+
     def _set_random_x_location(self):
         """ Sets the random unused x location for each line."""
         while True:
@@ -135,7 +139,7 @@ class MatrixLine:
 
 
 def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_timer,
-                lead_color):
+                lead_color, color_mode):
     """ Main loop. """
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
@@ -175,12 +179,21 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
                 screen.addstr(lead[0], lead[1], lead[2],
                               curses.color_pair(color_numbers[lead_color]) + curses.A_BOLD)
             if current:
+                if color_mode == "multiple":
+                    line_color_num = color_numbers[line.get_line_color()]
+
+                elif color_mode == "random":
+                    line_color_num = color_numbers[choice(list(color_numbers.keys()))]
+
+                else:  # single/normal
+                    line_color_num = color_numbers[color]
+
                 if bold_all or bold_char and randint(0, 9) <= 2:
                     screen.addstr(current[0], current[1], current[2],
-                                  curses.color_pair(color_numbers[color]) + curses.A_BOLD)
+                                  curses.color_pair(line_color_num) + curses.A_BOLD)
                 else:
                     screen.addstr(current[0], current[1], current[2],
-                                  curses.color_pair(color_numbers[color]))
+                                  curses.color_pair(line_color_num))
 
             if current is None:
                 line_list.remove(line)
@@ -212,6 +225,10 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
                 lead_color = curses_ch_codes_color[ch]
             elif ch == 97:  # a
                 MatrixLine.async_mode()
+            elif ch == 109:
+                color_mode = "multiple" if color_mode in ["random", "normal"] else "normal"
+            elif ch == 77:
+                color_mode = "random" if color_mode in ["multiple", "normal"] else "normal"
             elif ch in [81, 113]:  # q or Q
                 break
             elif ch in curses_ch_codes.keys():
@@ -283,6 +300,8 @@ def display_commands():
     print("B      Bold all characters")
     print("n      Bold off (Default)")
     print("a      Asynchronous like scrolling")
+    print("m      Multiple color mode")
+    print("M      Multiple random color mode")
     print("r,t,y,u,i,o,p   Set color")
     print("R,T,Y,U,I,O,P   Set lead character color")
 
@@ -308,6 +327,10 @@ def argument_parsing(argv):
                         help="Set color.  Default is green")
     parser.add_argument("-L", dest="lead_color", type=color_type, default="white",
                         help="Set the lead character color.  Default is white")
+    parser.add_argument("-m", dest="multiple_mode", action="store_true",
+                        help="Multiple color mode")
+    parser.add_argument("-M", dest="random_mode", action="store_true",
+                        help="Multiple random color mode")
     parser.add_argument("--list_colors", action="store_true",
                         help="Show available colors and exit. ")
     parser.add_argument("--list_commands", action="store_true",
@@ -335,9 +358,17 @@ def main(argv):
     if args.async_scroll:
         MatrixLine.async_mode()
 
+    if args.multiple_mode:
+        color_mode = "multiple"
+    elif args.random_mode:
+        color_mode = "random"
+    else:
+        color_mode = "normal"
+
     try:
         curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
-                       args.screen_saver, args.color, args.run_timer, args.lead_color)
+                       args.screen_saver, args.color, args.run_timer,
+                       args.lead_color, color_mode)
     except PyMatrixError as e:
         print(e)
         return
