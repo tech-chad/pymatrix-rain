@@ -129,9 +129,14 @@ class MatrixLine:
         #     MatrixLine.char_list = ["T"]
 
     @classmethod
-    def async_mode(cls):
+    def async_mode(cls, set_mode=None):
         """ Turn Asynchronous like scrolling on/off. """
-        MatrixLine.async_scroll = False if MatrixLine.async_scroll is True else True
+        if set_mode:
+            MatrixLine.async_scroll = True
+        elif set_mode is False:
+            MatrixLine.async_scroll = False
+        else:
+            MatrixLine.async_scroll = False if MatrixLine.async_scroll is True else True
         # if MatrixLine.async_scroll:
         #     MatrixLine.async_scroll = False
         # else:
@@ -229,6 +234,14 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
                 color_mode = "multiple" if color_mode in ["random", "normal"] else "normal"
             elif ch == 77:
                 color_mode = "random" if color_mode in ["multiple", "normal"] else "normal"
+            elif ch in [100, 68]:
+                bold_char = False
+                bold_all = False
+                color = "green"
+                lead_color = "white"
+                color_mode = "normal"
+                MatrixLine.async_mode(set_mode=False)
+                delay = 4
             elif ch in [81, 113]:  # q or Q
                 break
             elif ch in curses_ch_codes.keys():
@@ -302,6 +315,7 @@ def display_commands():
     print("a      Asynchronous like scrolling")
     print("m      Multiple color mode")
     print("M      Multiple random color mode")
+    print("d      Restore all defaults")
     print("r,t,y,u,i,o,p   Set color")
     print("R,T,Y,U,I,O,P   Set lead character color")
 
