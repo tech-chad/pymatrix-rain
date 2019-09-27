@@ -248,8 +248,8 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
                 delay = curses_ch_codes[ch]
         sleep(delay_speed[delay])
 
-    # screen.clear()
-    # screen.refresh()
+    screen.erase()
+    screen.refresh()
 
 
 def setup_curses_colors():
