@@ -129,6 +129,22 @@ def test_matrix_line_async_mode():
     assert pymatrix.MatrixLine.async_scroll is False
 
 
+def test_matrix_line_async_mode_set():
+    pymatrix.MatrixLine.async_mode(set_mode=True)
+    assert pymatrix.MatrixLine.async_scroll is True
+    pymatrix.MatrixLine.async_mode(set_mode=True)
+    assert pymatrix.MatrixLine.async_scroll is True
+    pymatrix.MatrixLine.async_mode(set_mode=False)
+    assert pymatrix.MatrixLine.async_scroll is False
+    pymatrix.MatrixLine.async_mode(set_mode=False)
+    assert pymatrix.MatrixLine.async_scroll is False
+
+
+def test_matrix_line_get_line_color(setup_matrix_line):
+    with mock.patch.object(pymatrix, "color_numbers", {"red": 1}):
+        line = setup_matrix_line()
+        result = line.get_line_color()
+        assert result == "red"
 
 
 
