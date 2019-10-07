@@ -349,6 +349,7 @@ def argument_parsing(argv):
                         help="Show available colors and exit. ")
     parser.add_argument("--list_commands", action="store_true",
                         help="List Commands and exit")
+    parser.add_argument("--version", action="version", version=f"Version: {version}")
 
     parser.add_argument("--test_mode", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args(argv)

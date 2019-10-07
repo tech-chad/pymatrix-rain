@@ -85,3 +85,7 @@ def test_pymatrix_list_commands():
     with Runner(*pymatrix_run("--list_commands")) as h:
         h.await_text("Commands available during run")
 
+
+def test_pymatrix_version():
+    with Runner(*pymatrix_run("--version")) as h:
+        h.await_text(f"Version: {pymatrix.version}")
