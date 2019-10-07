@@ -1,4 +1,5 @@
 
+from unittest import mock
 import pytest
 from hecate import Runner
 
@@ -89,3 +90,25 @@ def test_pymatrix_list_commands():
 def test_pymatrix_version():
     with Runner(*pymatrix_run("--version")) as h:
         h.await_text(f"Version: {pymatrix.version}")
+
+
+def test_pymatrix_help():
+    with Runner(*pymatrix_run("--help")) as h:
+        h.await_text("usage: pymatrix.py")
+
+
+def test_pymatrix_setup_curses_colors():
+    with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_init_pair:
+        pymatrix.setup_curses_colors()
+        assert mock_init_pair.call_count == 7
+
+
+def test_pymatrix_display_commands(capsys):
+    pymatrix.display_commands()
+    captured_output = capsys.readouterr().out
+    expected_text = "Commands available during run"
+    assert expected_text in captured_output
+
+
+
+
