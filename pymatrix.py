@@ -123,10 +123,6 @@ class MatrixLine:
     def test_mode(cls):
         """ Used to turn on/off test mode for unit testing. """
         MatrixLine.char_list = char_list if MatrixLine.char_list == ["T"] else ["T"]
-        # if MatrixLine.char_list == ["T"]:
-        #     MatrixLine.char_list = char_list
-        # else:
-        #     MatrixLine.char_list = ["T"]
 
     @classmethod
     def async_mode(cls, set_mode=None):
@@ -137,10 +133,6 @@ class MatrixLine:
             MatrixLine.async_scroll = False
         else:
             MatrixLine.async_scroll = False if MatrixLine.async_scroll is True else True
-        # if MatrixLine.async_scroll:
-        #     MatrixLine.async_scroll = False
-        # else:
-        #     MatrixLine.async_scroll = True
 
 
 def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_timer,
