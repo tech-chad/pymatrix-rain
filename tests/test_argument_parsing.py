@@ -122,6 +122,14 @@ def test_argument_parsing_multiple_random_color_mode(test_values, expected_resul
     assert result.random_mode == expected_results
 
 
+@pytest.mark.parametrize("test_values, expected_results", [
+    ([], False), (["-c"], True)
+])
+def test_argument_parsing_cycle_through_colors(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.cycle == expected_results
+
+
 # testing helper functions
 
 @pytest.mark.parametrize("test_values, expected_results", [

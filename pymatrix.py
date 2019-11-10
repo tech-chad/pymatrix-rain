@@ -152,6 +152,7 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
     line_list = []
 
     end_time = datetime.datetime.now() + datetime.timedelta(seconds=run_timer)
+    count = cycle = 0  # used for cycle through colors mode
     while True:
         if len(line_list) < size_x - 1:
             line_list.append(MatrixLine())
@@ -182,7 +183,16 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
 
                 elif color_mode == "random":
                     line_color_num = color_numbers[choice(list(color_numbers.keys()))]
-
+                elif color_mode == "cycle" and count < 25000:
+                    line_color_num = cycle
+                    count += 1
+                elif color_mode == "cycle" and count == 25000:
+                    if cycle == 6:
+                        cycle = 0
+                    else:
+                        cycle += 1
+                    count = 0
+                    line_color_num = cycle
                 else:  # single/normal
                     line_color_num = color_numbers[color]
 
@@ -224,9 +234,11 @@ def matrix_loop(screen, delay, bold_char, bold_all, screen_saver, color, run_tim
             elif ch == 97:  # a
                 MatrixLine.async_mode()
             elif ch == 109:
-                color_mode = "multiple" if color_mode in ["random", "normal"] else "normal"
+                color_mode = "multiple" if color_mode in ["random", "normal", "cycle"] else "normal"
             elif ch == 77:
-                color_mode = "random" if color_mode in ["multiple", "normal"] else "normal"
+                color_mode = "random" if color_mode in ["multiple", "normal", "cycle"] else "normal"
+            elif ch == 99:
+                color_mode = "cycle" if color_mode in ["random", "multiple", "normal"] else "normal"
             elif ch in [100, 68]:
                 bold_char = False
                 bold_all = False
@@ -338,6 +350,8 @@ def argument_parsing(argv):
                         help="Multiple color mode")
     parser.add_argument("-M", dest="random_mode", action="store_true",
                         help="Multiple random color mode")
+    parser.add_argument("-c", dest="cycle", action="store_true",
+                        help="cycle through the colors")
     parser.add_argument("--list_colors", action="store_true",
                         help="Show available colors and exit. ")
     parser.add_argument("--list_commands", action="store_true",
@@ -370,6 +384,8 @@ def main(argv):
         color_mode = "multiple"
     elif args.random_mode:
         color_mode = "random"
+    elif args.cycle:
+        color_mode = "cycle"
     else:
         color_mode = "normal"
 
