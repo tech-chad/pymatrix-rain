@@ -130,6 +130,14 @@ def test_argument_parsing_cycle_through_colors(test_values, expected_results):
     assert result.cycle == expected_results
 
 
+@pytest.mark.parametrize("test_values, expected_results", [
+    ([], False), (["-p"], True)
+])
+def test_argument_parsing_use_password(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.use_password == expected_results
+
+
 # testing helper functions
 
 @pytest.mark.parametrize("test_values, expected_results", [
