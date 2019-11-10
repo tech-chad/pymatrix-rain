@@ -2,6 +2,8 @@
 """ Matrix style rain using Python 3 and curses. """
 import argparse
 import curses
+import getpass
+import hashlib
 import sys
 import datetime
 from random import choice, randint
@@ -268,6 +270,13 @@ def setup_curses_colors():
     curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
 
+def get_password():
+    """ Gets the password and returns a hash of that password. """
+    h = hashlib.sha3_512(b'ter34123fgfg')
+    h.update(bytes(getpass.getpass("Enter password: "), "utf-8"))
+    return h.hexdigest()
+
+
 def positive_int_zero_to_nine(value):
     """
     Used with argparse.
@@ -352,6 +361,8 @@ def argument_parsing(argv):
                         help="Multiple random color mode")
     parser.add_argument("-c", dest="cycle", action="store_true",
                         help="cycle through the colors")
+    parser.add_argument("-p", dest="use_password", action="store_true",
+                        help="Password protect exit")
     parser.add_argument("--list_colors", action="store_true",
                         help="Show available colors and exit. ")
     parser.add_argument("--list_commands", action="store_true",
@@ -389,10 +400,20 @@ def main(argv):
     else:
         color_mode = "normal"
 
+    if args.use_password:
+        password = get_password()
+
     try:
-        curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
-                       args.screen_saver, args.color, args.run_timer,
-                       args.lead_color, color_mode)
+        while True:
+            curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
+                           args.screen_saver, args.color, args.run_timer,
+                           args.lead_color, color_mode)
+            if args.use_password:
+                exit_pass = get_password()
+                if exit_pass == password:
+                    break
+            else:
+                break
     except PyMatrixError as e:
         print(e)
         return
