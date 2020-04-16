@@ -13,6 +13,7 @@ from time import sleep
 
 from typing import Tuple
 from typing import Union
+from typing import Tuple
 
 if sys.version_info >= (3, 8):
     import importlib.metadata as importlib_metadata
@@ -406,7 +407,7 @@ def argument_parsing(argv: list) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv: list = None) -> None:
+def main(argv: list) -> None:
     args = argument_parsing(argv)
     password = None
 
