@@ -191,5 +191,3 @@ def test_positive_int_normal(test_values, expected_results):
 def test_positive_int_error(test_values):
     with pytest.raises(pymatrix.argparse.ArgumentTypeError):
         pymatrix.positive_int(test_values)
-
-

@@ -98,9 +98,9 @@ def test_pymatrix_help():
 
 
 def test_pymatrix_setup_curses_colors():
-    with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_init_pair:
+    with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_colors()
-        assert mock_init_pair.call_count == 7
+        assert mock_pair.call_count == 7
 
 
 def test_pymatrix_display_commands(capsys):
@@ -110,7 +110,8 @@ def test_pymatrix_display_commands(capsys):
     assert expected_text in captured_output
 
 
-@pytest.mark.parametrize("password", ["test", "499823", "asdfwwef", " ", "", "  3432sdfe   "])
+@pytest.mark.parametrize("password",
+                         ["test", "499823", "asdfwwef", " ", "", "  3432sdfe   "])
 def test_pymatrix_password(password):
     with Runner(*pymatrix_run("--test_mode", "-p")) as h:
         h.await_text("Enter password:")
@@ -123,4 +124,3 @@ def test_pymatrix_password(password):
         h.press("Enter")
         h.press("Enter")
         h.await_exit()
-

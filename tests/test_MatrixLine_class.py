@@ -41,7 +41,7 @@ def test_matrix_line_all_x_locations_list(set_screen_size):
 
     while True:
         for line in line_list:
-            _, b, _ = line.get_line()
+            b = line.get_line()
             if b is None:
                 line_list.remove(line)
         if len(line_list) == 0:
@@ -58,12 +58,40 @@ def test_matrix_line_reset_lines(set_screen_size):
     assert len(pymatrix.MatrixLine.all_x_locations_list) == 0
 
 
+def test_matrix_line_lines_turn_async_scroll_off(setup_matrix_line):
+    line = setup_matrix_line()
+    # with mock.patch.object(line, "async_scroll", )
+    turn = line.lines_turn()
+    assert turn is True
+
+
+def test_matrix_line_lines_turn_async_scroll_on_first_run():
+    pymatrix.MatrixLine.set_screen_size(20, 20)
+    line = pymatrix.MatrixLine()
+    with mock.patch.object(pymatrix.MatrixLine, "async_scroll", True):
+        with mock.patch.object(line, "async_scroll_rate", 2):
+            turn = line.lines_turn()
+            assert turn is False
+
+
+def test_matrix_line_lines_turn_async_scroll_on_second_run():
+    pymatrix.MatrixLine.set_screen_size(20, 20)
+    line = pymatrix.MatrixLine()
+    with mock.patch.object(pymatrix.MatrixLine, "async_scroll", True):
+        with mock.patch.object(line, "async_scroll_rate", 1):
+            _ = line.lines_turn()
+            turn = line.lines_turn()
+            assert turn is True
+
+
 def test_matrix_line_get_line_first_run_lead_true(setup_matrix_line):
     """ Lead char is True"""
     line = setup_matrix_line()
     with mock.patch.object(line, "lead_char_on", True):
         with mock.patch.object(line, "x_location", 2):
-            lead, body, rm = line.get_line()
+            lead = line.get_lead()
+            body = line.get_line()
+            rm = line.get_remove_tail()
             assert lead == (0, 2, "T")
             # assert lead[0] == 0
             assert body is False
@@ -74,7 +102,9 @@ def test_matrix_line_get_line_first_run_lead_false(set_screen_size):
     """ Lead char is False"""
     line = pymatrix.MatrixLine()
     with mock.patch.object(line, "lead_char_on", False):
-        lead, body, rm = line.get_line()
+        lead = line.get_lead()
+        body = line.get_line()
+        rm = line.get_remove_tail()
         assert lead is False
         assert body is False
         assert rm is False
@@ -84,8 +114,13 @@ def test_matrix_line_get_line_second_run_lead_true(setup_matrix_line):
     line = setup_matrix_line()
     with mock.patch.object(line, "lead_char_on", True):
         with mock.patch.object(line, "x_location", 2):
+            line.get_lead()
             line.get_line()  # first run
-            lead, body, rm = line.get_line()  # second run
+            line.get_remove_tail()
+
+            lead = line.get_lead()
+            body = line.get_line()  # second run1
+            rm = line.get_remove_tail()
             assert lead == (1, 2, "T")
             assert body == [0, 2, "T"]
             assert rm is False
@@ -96,8 +131,12 @@ def test_matrix_line_get_line_third_run_lead_true(setup_matrix_line):
     with mock.patch.object(line, "lead_char_on", True):
         with mock.patch.object(line, "x_location", 2):
             for _ in range(2):
+                line.get_lead()
                 line.get_line()
-            lead, body, rm = line.get_line()  # third run
+                line.get_remove_tail()
+            lead = line.get_lead()
+            body = line.get_line()  # third run
+            rm = line.get_remove_tail()
             assert lead == (2, 2, "T")
             assert body == [1, 2, "T"]
             assert rm is False
@@ -108,8 +147,12 @@ def test_matrix_line_get_line_lead_off_screen(setup_matrix_line):
     with mock.patch.object(line, "lead_char_on", True):
         with mock.patch.object(line, "x_location", 2):
             for _ in range(49):
+                line.get_lead()
                 line.get_line()
-            lead, _, _ = line.get_line()
+                line.get_remove_tail()
+            line.get_line()
+            lead = line.get_lead()
+            line.get_remove_tail()
             assert lead is False
 
 
@@ -141,13 +184,7 @@ def test_matrix_line_async_mode_set():
 
 
 def test_matrix_line_get_line_color(setup_matrix_line):
-    with mock.patch.object(pymatrix, "color_numbers", {"red": 1}):
+    with mock.patch.object(pymatrix, "COLOR_NUMBERS", {"red": 1}):
         line = setup_matrix_line()
         result = line.get_line_color()
         assert result == "red"
-
-
-
-
-
-
