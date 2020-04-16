@@ -11,7 +11,7 @@ from time import sleep
 from typing import Union
 from typing import Tuple
 
-version = "0.5.1"
+version = "0.5.2"
 
 CHAR_LIST = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n",
              "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B",
