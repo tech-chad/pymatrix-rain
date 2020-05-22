@@ -11,7 +11,6 @@ from random import choice
 from random import randint
 from time import sleep
 
-from typing import Tuple
 from typing import Union
 from typing import Tuple
 
