@@ -406,7 +406,7 @@ def argument_parsing(argv: list) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv: list) -> None:
+def main(argv: list = None) -> None:
     args = argument_parsing(argv)
     password = None
 
@@ -454,4 +454,4 @@ def main(argv: list) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
