@@ -2,16 +2,24 @@
 """ Matrix style rain using Python 3 and curses. """
 import argparse
 import curses
+import datetime
 import getpass
 import hashlib
 import sys
-import datetime
-from random import choice, randint
-from time import sleep
-from typing import Union
-from typing import Tuple
 
-version = "0.5.2"
+from random import choice
+from random import randint
+from time import sleep
+
+from typing import Tuple
+from typing import Union
+
+if sys.version_info >= (3, 8):
+    import importlib.metadata as importlib_metadata
+else:
+    import importlib_metadata
+
+version = importlib_metadata.version("pymatrix")
 
 CHAR_LIST = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n",
              "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B",
@@ -398,7 +406,7 @@ def argument_parsing(argv: list) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv: list) -> None:
+def main(argv: list = None) -> None:
     args = argument_parsing(argv)
     password = None
 
