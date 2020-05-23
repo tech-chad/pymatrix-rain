@@ -1,8 +1,10 @@
-# pymatrix
+# pymatrix-rain
 Matrix rain effect using python 3 and curses.
 
 ### How to Download
-to be added
+ >pip install pymatrix-rain
+ 
+ to run: pymatrix-rain
 
 
 ##### NOTE:
