@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-import pymatrix
+from pymatrix import pymatrix
 
 
 @pytest.fixture

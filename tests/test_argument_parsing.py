@@ -1,7 +1,7 @@
 
 import pytest
 
-import pymatrix
+from pymatrix import pymatrix
 
 
 @pytest.mark.parametrize("test_values, expected_results", [

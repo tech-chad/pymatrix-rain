@@ -3,12 +3,12 @@ from unittest import mock
 import pytest
 from hecate import Runner
 
-import pymatrix
+from pymatrix import pymatrix
 
 
 def pymatrix_run(*args):
     options = [a for a in args]
-    return ["python3", "pymatrix.py"] + options
+    return ["python3", "pymatrix/pymatrix.py"] + options
 
 
 def test_pymatrix_screen_test_mode():
