@@ -11,6 +11,7 @@ from random import choice
 from random import randint
 from time import sleep
 
+from typing import List
 from typing import Union
 from typing import Tuple
 
@@ -47,116 +48,46 @@ class PyMatrixError(Exception):
     pass
 
 
-class MatrixLine:
-    all_x_locations_list = []
-    screen_size_y = 0
-    screen_size_x = 0
-    char_list = CHAR_LIST
-    async_scroll = False
+class SingleLine:
+    def __init__(self, x: int, width: int, height: int) -> None:
+        self.y = -1
+        self.x = x
+        self.length = randint(3, height - 3)
+        self.data = []
+        self.lead_y = 0
+        self.width = width
+        self.height = height - 2
 
-    def __init__(self):
-        self.x_location = 0
-        self._set_random_x_location()
-        self.line_length = randint(5, MatrixLine.screen_size_y) - 3
-        self.lead_char_on = False if randint(0, 9) < 2 else True
-        self.y_location_lead = 0
-        self.y_location_tail = 0 - self.line_length
-        self.async_scroll_rate = randint(0, 2)
-        self.async_scroll_position = 0
-        self.random_line_color = choice(list(COLOR_NUMBERS.keys()))
+    def increment(self) -> None:
+        if self.lead_y <= self.height:
+            self.lead_y += 1
+        if self.y <= self.height:
+            self.y += 1
 
-    def get_line(self) -> Union[Tuple[int, int, str], bool, None]:
-        """
-        Gets the next character
-        """
-        if self.y_location_lead == 0:
-            loc_char = False
-        elif self.line_length >= self.y_location_lead >= 1:
-            loc_char = [self.y_location_lead - 1, self.x_location,
-                        choice(MatrixLine.char_list)]
+    def add_char(self) -> None:
+        if self.y <= self.height and self.y >= 0:
+            self.data.append((self.y, choice(CHAR_LIST)))
 
-        elif self.y_location_lead <= MatrixLine.screen_size_y:
-            if self.x_location in MatrixLine.all_x_locations_list:
-                # Free up the x location
-                MatrixLine.all_x_locations_list.remove(self.x_location)
+    def get_data(self) -> List[Tuple[int, int, str]]:
+        data_list = []
+        for ln in self.data:
+            if self.y >= 0:
+                data_list.append((ln[0], self.x, ln[1]))
+            elif ln[0] >= self.height:
+                data_list.append((self.data[0][0], self.x, " "))
+                self.data.pop(0)
+        return data_list
 
-            loc_char = [self.y_location_lead - 1, self.x_location,
-                        choice(MatrixLine.char_list)]
+    def get_lead(self) -> Tuple[int, int, str]:
+        if self.lead_y < self.height:
+            return self.lead_y, self.x, choice(CHAR_LIST)
 
-        elif self.y_location_tail < MatrixLine.screen_size_y:
-            # No more char to add.
-            loc_char = False
-        else:
-            # Line is done.
-            return None
-
-        self.y_location_lead += 1
-        self.y_location_tail += 1
-        return loc_char
-
-    def get_lead(self) -> Union[Tuple[int, int, str], bool]:
-        if self.lead_char_on and self.y_location_lead < MatrixLine.screen_size_y:
-            lead = self.y_location_lead, self.x_location, choice(MatrixLine.char_list)
-        else:
-            lead = False
-        return lead
-
-    def get_remove_tail(self) -> Union[Tuple[int, int], bool]:
-        if 0 <= self.y_location_tail < MatrixLine.screen_size_y:
-            remove = self.y_location_tail, self.x_location
-        else:
-            remove = False
-        return remove
-
-    def get_line_color(self) -> str:
-        return self.random_line_color
-
-    def _set_random_x_location(self) -> None:
-        """ Sets the random unused x location for each line."""
-        while True:
-            x = randint(0, MatrixLine.screen_size_x - 1)
-            if x not in MatrixLine.all_x_locations_list:
-                MatrixLine.all_x_locations_list.append(x)
-                self.x_location = x
-                break
-
-    def lines_turn(self) -> bool:
-        """Returns true if line's turn or if async is off.  Returns false if it's not """
-        if MatrixLine.async_scroll:
-            if self.async_scroll_position == self.async_scroll_rate:
-                self.async_scroll_position = 0
-                return True
-            else:
-                self.async_scroll_position += 1
-                return False
-        else:
-            return True
-
-    @classmethod
-    def set_screen_size(cls, y: int, x: int) -> None:
-        """ Sets the screen size. """
-        MatrixLine.screen_size_y = y - 1
-        MatrixLine.screen_size_x = x
-
-    @classmethod
-    def reset_lines(cls) -> None:
-        """ Resets to a fresh start. """
-        MatrixLine.all_x_locations_list.clear()
-
-    @classmethod
-    def test_mode(cls) -> None:
-        """ Used to turn on/off test mode for unit testing. """
-        MatrixLine.char_list = CHAR_LIST if MatrixLine.char_list == ["T"] else ["T"]
-
-    @classmethod
-    def async_mode(cls, set_mode: bool = None) -> None:
-        """ Turn Asynchronous like scrolling on/off. """
-        if set_mode:
-            MatrixLine.async_scroll = True
-        elif set_mode is False:
-            MatrixLine.async_scroll = False
-        else:
-            MatrixLine.async_scroll = False if MatrixLine.async_scroll is True else True
+    def get_remove(self) -> Tuple[int, int, str]:
+        if len(self.data) >= self.length or self.y >= self.height and len(self.data) >= 0:
+            rm = (self.data[0][0], self.x, " ")
+            self.data.pop(0)
+            return rm
+        return None
 
 
 def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_saver: bool,
@@ -170,71 +101,97 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
     if size_y <= 3:
         raise PyMatrixError("Error screen height is to short.")
 
-    MatrixLine.set_screen_size(size_y, size_x)
-
     line_list = []
-
+    x_list = [x for x in range(0, size_x)]
     end_time = datetime.datetime.now() + datetime.timedelta(seconds=run_timer)
     count = cycle = 0  # used for cycle through colors mode
+    # line_color_num = COLOR_NUMBERS[choice(list(COLOR_NUMBERS.keys()))]
+    line_color_num = COLOR_NUMBERS[color]
     while True:
-        if len(line_list) < size_x - 1:
-            line_list.append(MatrixLine())
-            line_list.append(MatrixLine())
+        if len(line_list) < size_x - 3:
+            x = choice(x_list)
+            x_list.pop(x_list.index(x))
+            line_list.append(SingleLine(x, size_x, size_y))
+            x = choice(x_list)
+            x_list.pop(x_list.index(x))
+            line_list.append(SingleLine(x, size_x, size_y))
 
         resize = curses.is_term_resized(size_y, size_x)
         if resize is True:
             size_y, size_x = screen.getmaxyx()
             if size_y <= 3:
                 raise PyMatrixError("Error screen height is to short.")
-            MatrixLine.reset_lines()
-            MatrixLine.set_screen_size(size_y, size_x)
+            x_list = [x for x in range(0, size_x)]
             line_list.clear()
             screen.clear()
             screen.refresh()
             continue
-
+        remove_list = []
         for line in line_list:
-            if line.lines_turn() is False:
-                continue
-            lead = line.get_lead()
-            current = line.get_line()
-            rm = line.get_remove_tail()
-            if lead:
-                screen.addstr(lead[0], lead[1], lead[2],
-                              curses.color_pair(COLOR_NUMBERS[lead_color]) +
-                              curses.A_BOLD)
-            if current:
-                if color_mode == "multiple":
-                    line_color_num = COLOR_NUMBERS[line.get_line_color()]
-
-                elif color_mode == "random":
-                    line_color_num = COLOR_NUMBERS[choice(list(COLOR_NUMBERS.keys()))]
-                elif color_mode == "cycle" and count < 20000:
-                    line_color_num = cycle
-                    count += 1
-                elif color_mode == "cycle" and count == 20000:
-                    if cycle == 6:
-                        cycle = 0
-                    else:
-                        cycle += 1
-                    count = 0
-                    line_color_num = cycle
-                else:  # single/normal
-                    line_color_num = COLOR_NUMBERS[color]
-
-                if bold_all or bold_char and randint(0, 9) <= 2:
-                    screen.addstr(current[0], current[1], current[2],
-                                  curses.color_pair(line_color_num) + curses.A_BOLD)
-                else:
-                    screen.addstr(current[0], current[1], current[2],
-                                  curses.color_pair(line_color_num))
-
-            if current is None:
-                line_list.remove(line)
+            line.add_char()
+            rm = line.get_remove()
             if rm:
-                screen.addstr(rm[0], rm[1], " ")
-
+                screen.addstr(rm[0], rm[1], rm[2])
+            line_data = line.get_data()
+            for ln in line_data:
+                screen.addstr(ln[0], ln[1], ln[2], curses.color_pair(line_color_num))
+            lead_char = line.get_lead()
+            if lead_char:
+                screen.addstr(lead_char[0],
+                              lead_char[1],
+                              lead_char[2],
+                              curses.color_pair(COLOR_NUMBERS[lead_color]
+                                                + curses.A_BOLD))
+            line.increment()
+            if len(line.data) <= 0 and line.y >= size_y - 2:
+                remove_list.append(line)
         screen.refresh()
+
+        for rem in remove_list:
+            line_list.pop(line_list.index(rem))
+            x_list.append(rem.x)
+
+            # if line.lines_turn() is False:
+            #     continue
+            # lead = line.get_lead()
+            # current = line.get_line()
+            # rm = line.get_remove_tail()
+            # if lead:
+            #     screen.addstr(lead[0], lead[1], lead[2],
+            #                   curses.color_pair(COLOR_NUMBERS[lead_color]) +
+            #                   curses.A_BOLD)
+            # if current:
+            #     if color_mode == "multiple":
+            #         line_color_num = COLOR_NUMBERS[line.get_line_color()]
+            #
+            #     elif color_mode == "random":
+            #         line_color_num = COLOR_NUMBERS[choice(list(COLOR_NUMBERS.keys()))]
+            #     elif color_mode == "cycle" and count < 20000:
+            #         line_color_num = cycle
+            #         count += 1
+            #     elif color_mode == "cycle" and count == 20000:
+            #         if cycle == 6:
+            #             cycle = 0
+            #         else:
+            #             cycle += 1
+            #         count = 0
+            #         line_color_num = cycle
+            #     else:  # single/normal
+            #         line_color_num = COLOR_NUMBERS[color]
+            #
+            #     if bold_all or bold_char and randint(0, 9) <= 2:
+            #         screen.addstr(current[0], current[1], current[2],
+            #                       curses.color_pair(line_color_num) + curses.A_BOLD)
+            #     else:
+            #         screen.addstr(current[0], current[1], current[2],
+            #                       curses.color_pair(line_color_num))
+            #
+            # if current is None:
+            #     line_list.remove(line)
+            # if rm:
+            #     screen.addstr(rm[0], rm[1], " ")
+
+        # screen.refresh()
         if run_timer and datetime.datetime.now() >= end_time:
             break
         ch = screen.getch()
