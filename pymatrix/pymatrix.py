@@ -425,20 +425,28 @@ def main(argv: list = None) -> None:
     else:
         color_mode = "normal"
 
-    try:
-        while True:
-            curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
-                           args.screen_saver, args.color, args.run_timer,
-                           args.lead_color, color_mode)
+    while True:
+        try:
+            try:
+                curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
+                               args.screen_saver, args.color, args.run_timer,
+                               args.lead_color, color_mode)
+            except KeyboardInterrupt:
+                pass
             if args.use_password:
                 exit_pass = get_password()
                 if exit_pass == password:
                     break
             else:
                 break
-    except PyMatrixError as e:
-        print(e)
-        return
+        except PyMatrixError as e:
+            print(e)
+            return
+
+        except KeyboardInterrupt:
+            if args.use_password:
+                continue
+            break
 
 
 if __name__ == "__main__":

@@ -11,6 +11,11 @@ def pymatrix_run(*args):
     return ["python3", "pymatrix/pymatrix.py"] + options
 
 
+# def pymatrix_run_inside(*args):
+#     options = [a for a in args]
+#     return "python3", "pymatrix/pymatrix.py"] + options
+
+
 def test_pymatrix_screen_test_mode():
     with Runner(*pymatrix_run("--test_mode")) as h:
         h.await_text("T")
@@ -134,3 +139,37 @@ def test_pymatrix_password(password):
         h.press("Enter")
         h.press("Enter")
         h.await_exit()
+
+
+def test_pymatrix_control_c_running():
+    with Runner("bash") as h:
+        h.await_text("$")
+        h.write("clear")
+        h.press("Enter")
+        h.write("python3 pymatrix/pymatrix.py --test_mode")
+        h.press("Enter")
+        h.await_text("T")
+        h.press("C-c")
+        captured = h.screenshot()
+        assert "Traceback" not in captured
+
+
+def test_pymatrix_control_c_with_password():
+    with Runner("bash") as h:
+        h.await_text("$")
+        h.write("clear")
+        h.press("Enter")
+        h.write("python3 pymatrix/pymatrix.py --test_mode -p")
+        h.press("Enter")
+        h.await_text("Enter password:")
+        h.write("blueTOWN")
+        h.press("Enter")
+        h.await_text("T")
+        h.press("C-c")
+        h.await_text("Enter password:")
+        h.write("blueTOWN")
+        h.press("Enter")
+        h.press("Enter")
+        captured = h.screenshot()
+        assert "Traceback" not in captured
+        assert "$" in captured
