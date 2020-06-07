@@ -11,9 +11,8 @@ from random import choice
 from random import randint
 from time import sleep
 
-from typing import List
-from typing import Union
 from typing import Tuple
+from typing import Union
 
 if sys.version_info >= (3, 8):
     import importlib.metadata as importlib_metadata
@@ -36,6 +35,11 @@ DELAY_SPEED = {0: 0.005, 1: 0.01, 2: 0.025, 3: 0.04, 4: 0.055, 5: 0.07,
 COLOR_NUMBERS = {"red": 1, "green": 2, "blue": 3, "yellow": 4, "magenta": 5,
                  "cyan": 6, "white": 7}
 
+CURSES_COLOR = {"red": curses.COLOR_RED, "green": curses.COLOR_GREEN,
+                "blue": curses.COLOR_BLUE, "yellow": curses.COLOR_YELLOW,
+                "magenta": curses.COLOR_MAGENTA, "cyan": curses.COLOR_CYAN,
+                "white": curses.COLOR_WHITE}
+
 CURSES_CH_CODES = {48: 0, 49: 1, 50: 2, 51: 3, 52: 4, 53: 5, 54: 6, 55: 7, 56: 8, 57: 9}
 
 CURSES_CH_CODES_COLOR = {114: "red", 82: "red", 116: "green", 84: "green",
@@ -49,6 +53,9 @@ class PyMatrixError(Exception):
 
 
 class SingleLine:
+    async_scroll = False
+    char_list = CHAR_LIST
+
     def __init__(self, x: int, width: int, height: int) -> None:
         self.y = -1
         self.x = x
@@ -57,37 +64,63 @@ class SingleLine:
         self.lead_y = 0
         self.width = width
         self.height = height - 2
+        self.line_color_number = randint(1, 7)
+        self.async_scroll_rate = randint(0, 3)
+        self.async_scroll_position = 0
 
     def increment(self) -> None:
+        """ moves the lead y position and y position """
         if self.lead_y <= self.height:
             self.lead_y += 1
         if self.y <= self.height:
             self.y += 1
 
+    def async_scroll_turn(self) -> bool:
+        """ Checks to see if lines turn when async like scrolling is on"""
+        if self.async_scroll_position == self.async_scroll_rate:
+            self.async_scroll_position = 0
+            return True
+        else:
+            self.async_scroll_position += 1
+            return False
+
     def add_char(self) -> None:
-        if self.y <= self.height and self.y >= 0:
-            self.data.append((self.y, choice(CHAR_LIST)))
+        """ Adds a random char to the line """
+        if 0 <= self.y <= self.height:
+            self.data.append((self.y, choice(SingleLine.char_list)))
+        else:
+            return None
 
-    def get_data(self) -> List[Tuple[int, int, str]]:
-        data_list = []
-        for ln in self.data:
-            if self.y >= 0:
-                data_list.append((ln[0], self.x, ln[1]))
-            elif ln[0] >= self.height:
-                data_list.append((self.data[0][0], self.x, " "))
-                self.data.pop(0)
-        return data_list
+    def get_new(self) -> Union[Tuple[int, int, str], None]:
+        """ Gets the last char that was added"""
+        if 0 <= self.y <= self.height and len(self.data) > 0:
+            new = (self.data[-1][0], self.x, self.data[-1][1])
+            return new
+        else:
+            return None
 
-    def get_lead(self) -> Tuple[int, int, str]:
+    def get_lead(self) -> Union[Tuple[int, int, str], None]:
+        """ Gets the lead char """
         if self.lead_y < self.height:
-            return self.lead_y, self.x, choice(CHAR_LIST)
+            return self.lead_y, self.x, choice(SingleLine.char_list)
+        else:
+            return None
 
-    def get_remove(self) -> Tuple[int, int, str]:
+    def get_remove(self) -> Union[Tuple[int, int, str], None]:
+        """ Remove char from list and returns the location to erase """
         if len(self.data) >= self.length or self.y >= self.height and len(self.data) >= 0:
             rm = (self.data[0][0], self.x, " ")
             self.data.pop(0)
             return rm
+        elif len(self.data) > 0 and self.data[0][0] >= self.height:
+            rm = (self.data[0][0], self.x, " ")
+            self.data.pop(0)
+            return rm
         return None
+
+    @classmethod
+    def set_test_mode(cls) -> None:
+        SingleLine.char_list = ["T"]
 
 
 def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_saver: bool,
@@ -95,18 +128,21 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
     """ Main loop. """
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
-    setup_curses_colors()
+    setup_curses_colors(color)
+    curses_lead_color(lead_color)
+    line_list = []
+    count = cycle = 0  # used for cycle through colors mode
+
+    if color_mode == "multiple" or color_mode == "random":
+        setup_curses_colors("random")
 
     size_y, size_x = screen.getmaxyx()
     if size_y <= 3:
         raise PyMatrixError("Error screen height is to short.")
 
-    line_list = []
     x_list = [x for x in range(0, size_x)]
+
     end_time = datetime.datetime.now() + datetime.timedelta(seconds=run_timer)
-    count = cycle = 0  # used for cycle through colors mode
-    # line_color_num = COLOR_NUMBERS[choice(list(COLOR_NUMBERS.keys()))]
-    line_color_num = COLOR_NUMBERS[color]
     while True:
         if len(line_list) < size_x - 3:
             x = choice(x_list)
@@ -122,26 +158,50 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
             if size_y <= 3:
                 raise PyMatrixError("Error screen height is to short.")
             x_list = [x for x in range(0, size_x)]
+
             line_list.clear()
             screen.clear()
             screen.refresh()
             continue
         remove_list = []
+
+        if color_mode == "cycle":
+            if count <= 0:
+                setup_curses_colors(list(CURSES_COLOR.keys())[cycle])
+                count = 500
+                cycle = 0 if cycle == 6 else cycle + 1
+            else:
+                count -= 1
+
         for line in line_list:
+            if SingleLine.async_scroll and not line.async_scroll_turn():
+                continue
             line.add_char()
             rm = line.get_remove()
             if rm:
                 screen.addstr(rm[0], rm[1], rm[2])
-            line_data = line.get_data()
-            for ln in line_data:
-                screen.addstr(ln[0], ln[1], ln[2], curses.color_pair(line_color_num))
+
+            if bold_all:
+                bold = curses.A_BOLD
+            elif bold_char:
+                bold = curses.A_BOLD if randint(1, 3) <= 1 else curses.A_NORMAL
+            else:
+                bold = curses.A_NORMAL
+
+            new_line = line.get_new()
+            if new_line:
+                if color_mode == "random":
+                    screen.addstr(new_line[0], new_line[1], new_line[2],
+                                  curses.color_pair(randint(1, 7)) + bold)
+                else:
+                    screen.addstr(new_line[0], new_line[1], new_line[2],
+                                  curses.color_pair(line.line_color_number) + bold)
+
             lead_char = line.get_lead()
             if lead_char:
-                screen.addstr(lead_char[0],
-                              lead_char[1],
-                              lead_char[2],
-                              curses.color_pair(COLOR_NUMBERS[lead_color]
-                                                + curses.A_BOLD))
+                screen.addstr(lead_char[0], lead_char[1], lead_char[2],
+                              curses.color_pair(10) + bold)
+
             line.increment()
             if len(line.data) <= 0 and line.y >= size_y - 2:
                 remove_list.append(line)
@@ -151,47 +211,6 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
             line_list.pop(line_list.index(rem))
             x_list.append(rem.x)
 
-            # if line.lines_turn() is False:
-            #     continue
-            # lead = line.get_lead()
-            # current = line.get_line()
-            # rm = line.get_remove_tail()
-            # if lead:
-            #     screen.addstr(lead[0], lead[1], lead[2],
-            #                   curses.color_pair(COLOR_NUMBERS[lead_color]) +
-            #                   curses.A_BOLD)
-            # if current:
-            #     if color_mode == "multiple":
-            #         line_color_num = COLOR_NUMBERS[line.get_line_color()]
-            #
-            #     elif color_mode == "random":
-            #         line_color_num = COLOR_NUMBERS[choice(list(COLOR_NUMBERS.keys()))]
-            #     elif color_mode == "cycle" and count < 20000:
-            #         line_color_num = cycle
-            #         count += 1
-            #     elif color_mode == "cycle" and count == 20000:
-            #         if cycle == 6:
-            #             cycle = 0
-            #         else:
-            #             cycle += 1
-            #         count = 0
-            #         line_color_num = cycle
-            #     else:  # single/normal
-            #         line_color_num = COLOR_NUMBERS[color]
-            #
-            #     if bold_all or bold_char and randint(0, 9) <= 2:
-            #         screen.addstr(current[0], current[1], current[2],
-            #                       curses.color_pair(line_color_num) + curses.A_BOLD)
-            #     else:
-            #         screen.addstr(current[0], current[1], current[2],
-            #                       curses.color_pair(line_color_num))
-            #
-            # if current is None:
-            #     line_list.remove(line)
-            # if rm:
-            #     screen.addstr(rm[0], rm[1], " ")
-
-        # screen.refresh()
         if run_timer and datetime.datetime.now() >= end_time:
             break
         ch = screen.getch()
@@ -199,10 +218,10 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
             break
         elif ch != -1:
             # Commands:
-            if ch == 98:  # a
+            if ch == 98:  # b
                 bold_char = True
                 bold_all = False
-            elif ch == 66:  # A
+            elif ch == 66:  # B
                 bold_all = True
                 bold_char = False
             elif ch in [78, 110]:  # n or N
@@ -210,36 +229,43 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
                 bold_all = False
             elif ch in [114, 116, 121, 117, 105, 111, 112]:
                 # r, t, y, u, i, o, p
-                color = CURSES_CH_CODES_COLOR[ch]
+                setup_curses_colors(CURSES_CH_CODES_COLOR[ch])
+                color_mode = "normal"
             elif ch in [82, 84, 89, 85, 73, 79, 80]:
                 # R, T, Y, U, I, O, P
-                lead_color = CURSES_CH_CODES_COLOR[ch]
+                curses_lead_color(CURSES_CH_CODES_COLOR[ch])
             elif ch == 97:  # a
-                MatrixLine.async_mode()
-            elif ch == 109:
+                SingleLine.async_scroll = not SingleLine.async_scroll
+            elif ch == 109:  # m
                 if color_mode in ["random", "normal", "cycle"]:
                     color_mode = "multiple"
+                    setup_curses_colors("random")
                 else:
                     color_mode = "normal"
-            elif ch == 77:
+                    setup_curses_colors("green")
+
+            elif ch == 77:  # M
                 if color_mode in ["multiple", "normal", "cycle"]:
                     color_mode = "random"
+                    setup_curses_colors("random")
                 else:
                     color_mode = "normal"
-            elif ch == 99:
+                    setup_curses_colors("green")
+
+            elif ch == 99:  # c
                 if color_mode in ["random", "multiple", "normal"]:
                     color_mode = "cycle"
                 else:
                     color_mode = "normal"
-            elif ch in [100, 68]:
+            elif ch in [100, 68]:  # d, D
                 bold_char = False
                 bold_all = False
-                color = "green"
-                lead_color = "white"
+                setup_curses_colors("green")
+                curses_lead_color("white")
                 color_mode = "normal"
-                MatrixLine.async_mode(set_mode=False)
+                SingleLine.async_scroll = False
                 delay = 4
-            elif ch in [81, 113]:  # q or Q
+            elif ch in [81, 113]:  # q, Q
                 break
             elif ch in CURSES_CH_CODES.keys():
                 delay = CURSES_CH_CODES[ch]
@@ -249,15 +275,19 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
     screen.refresh()
 
 
-def setup_curses_colors() -> None:
+def curses_lead_color(color: str) -> None:
+    curses.init_pair(10, CURSES_COLOR[color], curses.COLOR_BLACK)
+
+
+def setup_curses_colors(color: str) -> None:
     """ Init colors pairs in the curses. """
-    curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)
-    curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-    curses.init_pair(5, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
-    curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLACK)
-    curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLACK)
+    if color == "random":
+        color_list = list(CURSES_COLOR.keys())
+    else:
+        color_list = [color for _ in range(7)]
+
+    for x, c in enumerate(color_list):
+        curses.init_pair(x + 1, CURSES_COLOR[c], curses.COLOR_BLACK)
 
 
 def get_password():
@@ -378,12 +408,12 @@ def main(argv: list = None) -> None:
         password = get_password()
 
     if args.test_mode:
-        MatrixLine.test_mode()
+        SingleLine.set_test_mode()
 
     sleep(args.start_timer)
 
     if args.async_scroll:
-        MatrixLine.async_mode()
+        SingleLine.async_scroll = True
 
     if args.multiple_mode:
         color_mode = "multiple"

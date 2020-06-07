@@ -35,7 +35,11 @@ def test_pymatrix_quit_screen_saver_mode(test_key):
 
 
 def test_pymatrix_screen_resize_width_very_narrow():
+    # note test can be flaky
     with Runner(*pymatrix_run("--test_mode"), width=50, height=50) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        h.tmux.execute_command('split-window', '-ht0', '-l', 44)
         h.await_text("T")
         h.tmux.execute_command('split-window', '-ht0', '-l', 47)
         h.await_text("T")
@@ -99,8 +103,14 @@ def test_pymatrix_help():
 
 def test_pymatrix_setup_curses_colors():
     with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
-        pymatrix.setup_curses_colors()
+        pymatrix.setup_curses_colors("random")
         assert mock_pair.call_count == 7
+
+
+def test_curses_lead_color():
+    with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
+        pymatrix.curses_lead_color("blue")
+        assert mock_pair.call_count == 1
 
 
 def test_pymatrix_display_commands(capsys):
