@@ -349,6 +349,7 @@ def display_commands() -> None:
     print("a      Asynchronous like scrolling")
     print("m      Multiple color mode")
     print("M      Multiple random color mode")
+    print("c      Cycle colors")
     print("d      Restore all defaults")
     print("r,t,y,u,i,o,p   Set color")
     print("R,T,Y,U,I,O,P   Set lead character color")
