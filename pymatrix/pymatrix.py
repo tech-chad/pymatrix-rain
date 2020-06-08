@@ -29,6 +29,14 @@ CHAR_LIST = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n
              "-", "+", "=", "[", "]", "{", "}", "|", ";", ":", "<", ">", ",", ".",
              "?", "~", "`", "@", "*", "_", "'", "\\", "/", '"']
 
+EXT_INTS = [199, 200, 204, 205, 208, 209, 210, 215, 216, 217, 218, 221, 222, 223, 224,
+            163, 164, 165, 167, 170, 182, 186, 187, 191, 196, 197, 233, 234, 237, 239,
+            229, 230, 231, 232, 240, 241, 242, 246, 248, 249, 253, 254, 257, 263, 265,
+            279, 283, 285, 291, 295, 299, 305, 311, 317, 321, 322, 324, 328, 333, 338,
+            339, 341, 343, 347, 349, 353, 357, 363, 371, 376, 378, 380, 381, 382, 537,
+            539, 35]
+EXT_CHAR_LIST = [chr(x) for x in EXT_INTS]
+
 DELAY_SPEED = {0: 0.005, 1: 0.01, 2: 0.025, 3: 0.04, 4: 0.055, 5: 0.07,
                6: 0.085, 7: 0.1, 8: 0.115, 9: 0.13}
 
@@ -54,6 +62,7 @@ class PyMatrixError(Exception):
 
 class SingleLine:
     async_scroll = False
+    extended_char = False
     char_list = CHAR_LIST
 
     def __init__(self, x: int, width: int, height: int) -> None:
@@ -119,8 +128,23 @@ class SingleLine:
         return None
 
     @classmethod
-    def set_test_mode(cls) -> None:
-        SingleLine.char_list = ["T"]
+    def set_test_mode(cls, extended: str = "off") -> None:
+        if extended == "off":
+            SingleLine.char_list = ["T"]
+        elif extended == "on":
+            SingleLine.char_list = ["T", chr(35)]
+        elif extended == "only":
+            SingleLine.char_list = [chr(35)]
+
+    @classmethod
+    def set_extended_chars(cls, state: str):
+        # off, on, only, test
+        if state == "off":
+            cls.char_list = CHAR_LIST
+        elif state == "on":
+            cls.char_list = CHAR_LIST + EXT_CHAR_LIST
+        elif state == "only":
+            cls.char_list = EXT_CHAR_LIST
 
 
 def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_saver: bool,
@@ -382,6 +406,10 @@ def argument_parsing(argv: list) -> argparse.Namespace:
                         help="Multiple random color mode")
     parser.add_argument("-c", dest="cycle", action="store_true",
                         help="cycle through the colors")
+    parser.add_argument("-e", dest="ext", action="store_true",
+                        help="use extended characters")
+    parser.add_argument("-E", dest="ext_only", action="store_true",
+                        help="use only extended characters (overrides -e)")
     parser.add_argument("-p", dest="use_password", action="store_true",
                         help="Password protect exit")
     parser.add_argument("--list_colors", action="store_true",
@@ -391,6 +419,7 @@ def argument_parsing(argv: list) -> argparse.Namespace:
     parser.add_argument("--version", action="version", version=f"Version: {version}")
 
     parser.add_argument("--test_mode", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--test_mode_ext", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args(argv)
 
 
@@ -408,8 +437,19 @@ def main(argv: list = None) -> None:
     if args.use_password:
         password = get_password()
 
-    if args.test_mode:
+    if args.test_mode and not args.test_mode_ext:
         SingleLine.set_test_mode()
+    elif args.test_mode and args.test_mode_ext:
+        SingleLine.set_test_mode(extended="on")
+    elif args.test_mode_ext:
+        SingleLine.set_test_mode(extended="only")
+
+    if args.ext:
+        SingleLine.set_extended_chars("on")
+    if args.ext_only:
+        SingleLine.set_extended_chars("only")
+    if not args.ext and not args.ext_only:
+        SingleLine.set_extended_chars("off")
 
     sleep(args.start_timer)
 

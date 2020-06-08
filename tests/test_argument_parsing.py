@@ -23,6 +23,14 @@ def test_argument_parsing_test_mode(test_values, expected_results):
 
 
 @pytest.mark.parametrize("test_values, expected_results", [
+    ([], False), (["--test_mode_ext"], True)
+])
+def test_argument_parsing_test_mode_ext(test_values, expected_results):
+    result = pymatrix.argument_parsing(test_values)
+    assert result.test_mode_ext == expected_results
+
+
+@pytest.mark.parametrize("test_values, expected_results", [
     ([], False), (["-b"], True)
 ])
 def test_argument_parsing_bold_on(test_values, expected_results):
@@ -136,6 +144,22 @@ def test_argument_parsing_cycle_through_colors(test_values, expected_results):
 def test_argument_parsing_use_password(test_values, expected_results):
     result = pymatrix.argument_parsing(test_values)
     assert result.use_password == expected_results
+
+
+@pytest.mark.parametrize("test_value, expected_result", [
+    ([], False), (["-e"], True)
+])
+def test_argument_parsing_extended_char(test_value, expected_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.ext == expected_result
+
+
+@pytest.mark.parametrize("test_value, expected_result", [
+    ([], False), (["-E"], True)
+])
+def test_argument_parsing_extended_char(test_value, expected_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.ext_only == expected_result
 
 
 # testing helper functions

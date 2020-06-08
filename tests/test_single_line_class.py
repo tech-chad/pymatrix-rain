@@ -131,4 +131,19 @@ def test_set_test_mode():
     assert pymatrix.SingleLine.char_list == ["T"]
 
 
+@pytest.mark.parametrize("test_value, expected_result", [
+    ("off", ["T"]), ("on", ["T", chr(35)]), ("only", [chr(35)])
+])
+def test_set_test_mode_ext(test_value, expected_result):
+    pymatrix.SingleLine.set_test_mode(test_value)
+    assert pymatrix.SingleLine.char_list == expected_result
 
+
+@pytest.mark.parametrize("state, expected", [
+    ("off", pymatrix.CHAR_LIST),
+    ("on", pymatrix.CHAR_LIST + pymatrix.EXT_CHAR_LIST),
+    ("only", pymatrix.EXT_CHAR_LIST),
+])
+def test_set_extended_chars(state, expected):
+    pymatrix.SingleLine.set_extended_chars(state)
+    assert pymatrix.SingleLine.char_list == expected

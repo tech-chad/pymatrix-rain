@@ -1,5 +1,4 @@
 from unittest import mock
-
 import pytest
 from hecate import Runner
 
@@ -19,6 +18,11 @@ def pymatrix_run(*args):
 def test_pymatrix_screen_test_mode():
     with Runner(*pymatrix_run("--test_mode")) as h:
         h.await_text("T")
+
+
+def test_pymatrix_screen_test_mode_ext():
+    with Runner(*pymatrix_run("--test_mode_ext")) as h:
+        h.await_text(chr(35))
 
 
 @pytest.mark.parametrize("test_key", ["Q", "q"])
@@ -102,7 +106,7 @@ def test_pymatrix_version():
 
 
 def test_pymatrix_help():
-    with Runner(*pymatrix_run("--help")) as h:
+    with Runner(*pymatrix_run("--help"), width=50, height=38) as h:
         h.await_text("usage: pymatrix.py")
 
 
