@@ -24,6 +24,7 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>M</kbd>** = *multiple random color mode*
 - **<kbd>d</kbd>** = *reset to default*
 - **<kbd>c</kbd>** = *cycle through colors automatically*
+- **<kbd>shift 0-9</kbd>** = *cycle color delay*
 
 ##### rain colors
 - **<kbd>r</kbd>** = red

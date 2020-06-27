@@ -55,6 +55,9 @@ CURSES_CH_CODES_COLOR = {114: "red", 82: "red", 116: "green", 84: "green",
                          105: "magenta", 73: "magenta", 111: "cyan",
                          79: "cyan", 112: "white", 80: "white"}
 
+CURSES_CH_CODES_CYCLE = {41: 1, 33: 2, 64: 3, 35: 4, 36: 5, 37: 6,
+                         94: 7, 38: 8, 42: 9, 40: 10}
+
 
 class PyMatrixError(Exception):
     pass
@@ -156,6 +159,7 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
     curses_lead_color(lead_color)
     line_list = []
     count = cycle = 0  # used for cycle through colors mode
+    cycle_delay = 500
 
     if color_mode == "multiple" or color_mode == "random":
         setup_curses_colors("random")
@@ -192,7 +196,7 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
         if color_mode == "cycle":
             if count <= 0:
                 setup_curses_colors(list(CURSES_COLOR.keys())[cycle])
-                count = 500
+                count = cycle_delay
                 cycle = 0 if cycle == 6 else cycle + 1
             else:
                 count -= 1
@@ -289,6 +293,9 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
                 color_mode = "normal"
                 SingleLine.async_scroll = False
                 delay = 4
+            elif color_mode == "cycle" and ch in CURSES_CH_CODES_CYCLE.keys():
+                cycle_delay = 100 * CURSES_CH_CODES_CYCLE[ch]
+                count = cycle_delay
             elif ch in [81, 113]:  # q, Q
                 break
             elif ch in CURSES_CH_CODES.keys():
@@ -366,7 +373,7 @@ def positive_int(value: str) -> int:
 
 def display_commands() -> None:
     print("Commands available during run")
-    print("0 - 9  Delay time (0-Fast, 4-Default, 9-Slow")
+    print("0 - 9  Delay time (0-Fast, 4-Default, 9-Slow)")
     print("b      Bold characters on")
     print("B      Bold all characters")
     print("n      Bold off (Default)")
@@ -377,6 +384,7 @@ def display_commands() -> None:
     print("d      Restore all defaults")
     print("r,t,y,u,i,o,p   Set color")
     print("R,T,Y,U,I,O,P   Set lead character color")
+    print("shift 0 - 9 Cycle color delay (0-Fast, 4-Default, 9-Slow)")
 
 
 def argument_parsing(argv: list) -> argparse.Namespace:
