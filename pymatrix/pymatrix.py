@@ -151,7 +151,8 @@ class SingleLine:
 
 
 def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_saver: bool,
-                color: str, run_timer: int, lead_color: str, color_mode: str) -> None:
+                color: str, run_timer: int, lead_color: str, color_mode: str,
+                double_space: bool) -> None:
     """ Main loop. """
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
@@ -160,6 +161,7 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
     line_list = []
     count = cycle = 0  # used for cycle through colors mode
     cycle_delay = 500
+    spacer = 2 if double_space else 1
 
     if color_mode == "multiple" or color_mode == "random":
         setup_curses_colors("random")
@@ -168,11 +170,11 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
     if size_y <= 3:
         raise PyMatrixError("Error screen height is to short.")
 
-    x_list = [x for x in range(0, size_x)]
+    x_list = [x for x in range(0, size_x, spacer)]
 
     end_time = datetime.datetime.now() + datetime.timedelta(seconds=run_timer)
     while True:
-        if len(line_list) < size_x - 3:
+        if len(line_list) < (size_x / spacer) - 1:
             x = choice(x_list)
             x_list.pop(x_list.index(x))
             line_list.append(SingleLine(x, size_x, size_y))
@@ -185,7 +187,7 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
             size_y, size_x = screen.getmaxyx()
             if size_y <= 3:
                 raise PyMatrixError("Error screen height is to short.")
-            x_list = [x for x in range(0, size_x)]
+            x_list = [x for x in range(0, size_x, spacer)]
 
             line_list.clear()
             screen.clear()
@@ -285,6 +287,17 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
                     color_mode = "cycle"
                 else:
                     color_mode = "normal"
+            elif ch == 108:  # l
+                if spacer == 1:
+                    spacer = 2
+                    x_list = [x for x in range(0, size_x, spacer)]
+                    line_list.clear()
+                    screen.clear()
+                    screen.refresh()
+                else:
+                    spacer = 1
+                    x_list = [x for x in range(0, size_x, spacer)]
+
             elif ch in [100, 68]:  # d, D
                 bold_char = False
                 bold_all = False
@@ -293,6 +306,9 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
                 color_mode = "normal"
                 SingleLine.async_scroll = False
                 delay = 4
+                if spacer == 2:
+                    spacer = 1
+                    x_list = [x for x in range(0, size_x, spacer)]
             elif color_mode == "cycle" and ch in CURSES_CH_CODES_CYCLE.keys():
                 cycle_delay = 100 * CURSES_CH_CODES_CYCLE[ch]
                 count = cycle_delay
@@ -382,6 +398,7 @@ def display_commands() -> None:
     print("M      Multiple random color mode")
     print("c      Cycle colors")
     print("d      Restore all defaults")
+    print("l      Toggle double space lines")
     print("r,t,y,u,i,o,p   Set color")
     print("R,T,Y,U,I,O,P   Set lead character color")
     print("shift 0 - 9 Cycle color delay (0-Fast, 4-Default, 9-Slow)")
@@ -418,6 +435,8 @@ def argument_parsing(argv: list) -> argparse.Namespace:
                         help="use extended characters")
     parser.add_argument("-E", dest="ext_only", action="store_true",
                         help="use only extended characters (overrides -e)")
+    parser.add_argument("-l", dest="double_space", action="store_true",
+                        help="Double space lines")
     parser.add_argument("-p", dest="use_password", action="store_true",
                         help="Password protect exit")
     parser.add_argument("--list_colors", action="store_true",
@@ -478,7 +497,7 @@ def main(argv: list = None) -> None:
             try:
                 curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
                                args.screen_saver, args.color, args.run_timer,
-                               args.lead_color, color_mode)
+                               args.lead_color, color_mode, args.double_space)
             except KeyboardInterrupt:
                 pass
             if args.use_password:

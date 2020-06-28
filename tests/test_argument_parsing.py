@@ -162,8 +162,15 @@ def test_argument_parsing_extended_char(test_value, expected_result):
     assert result.ext_only == expected_result
 
 
-# testing helper functions
+@pytest.mark.parametrize("test_value, expected_result", [
+    ([], False), (["-l"], True),
+])
+def test_argument_parsing_double_space_lines(test_value, expected_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.double_space == expected_result
 
+
+# testing helper functions
 @pytest.mark.parametrize("test_values, expected_results", [
     ("0", 0), ("1", 1), ("2", 2), ("3", 3), ("4", 4),
     ("5", 5), ("6", 6), ("7", 7), ("8", 8), ("9", 9)
