@@ -47,10 +47,10 @@ Matrix rain effect using python 3 and curses.
 
 ## Screen Shots
 
-![screen1.png](img/screen1.png?raw=true)
+![screen1.png](https://i.fluffy.cc/MKs7Xz0K9hFJn6Np8FTWhF5NNkG7PbQK.png)
 
-![screen2.png](img/screen2.png?raw=true)
+![screen2.png](https://i.fluffy.cc/3B88FSK9j8lTRgq4k52ZDLZPf02fpWnv.png)
 
-![screen3.png](img/screen3.png?raw=true)
+![screen3.png](https://i.fluffy.cc/WHXssN9PRl9GfGqgGRBfZmpZKNGLk2DC.png)
 
-![screen4.png](img/screen4.png?raw=true)
+![screen4.png](https://i.fluffy.cc/977jk4tNLV7tPdfw9B46VM2m6NNRqwt6.png)
