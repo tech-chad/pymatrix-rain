@@ -177,13 +177,17 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
 
     end_time = datetime.datetime.now() + datetime.timedelta(seconds=run_timer)
     while True:
-        if len(line_list) < (size_x / spacer) - 1:
+        if len(line_list) < size_x - 1:
             x = choice(x_list)
             x_list.pop(x_list.index(x))
             line_list.append(SingleLine(x, size_x, size_y))
-            x = choice(x_list)
-            x_list.pop(x_list.index(x))
-            line_list.append(SingleLine(x, size_x, size_y))
+            if len(line_list) > 10:
+                x = choice(x_list)
+                x_list.pop(x_list.index(x))
+                line_list.append(SingleLine(x, size_x, size_y))
+                x = choice(x_list)
+                x_list.pop(x_list.index(x))
+                line_list.append(SingleLine(x, size_x, size_y))
 
         resize = curses.is_term_resized(size_y, size_x)
         if resize is True:
@@ -213,6 +217,8 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
             rm = line.get_remove()
             if rm:
                 screen.addstr(rm[0], rm[1], rm[2])
+                if line.x not in x_list:
+                    x_list.append(line.x)
 
             if bold_all:
                 bold = curses.A_BOLD
