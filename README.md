@@ -25,6 +25,8 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>d</kbd>** = *reset to default*
 - **<kbd>c</kbd>** = *cycle through colors automatically*
 - **<kbd>l</kbd>** = *toggle double space lines*
+- **<kbd>e</kbd>** = *toggle extended characters*
+- **<kbd>E</kbd>** = *only extended characters if on"
 - **<kbd>shift 0-9</kbd>** = *cycle color delay*
 
 ##### rain colors

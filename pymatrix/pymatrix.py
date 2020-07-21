@@ -65,7 +65,7 @@ class PyMatrixError(Exception):
 
 class SingleLine:
     async_scroll = False
-    extended_char = False
+    extended_char = "off"
     char_list = CHAR_LIST
 
     def __init__(self, x: int, width: int, height: int) -> None:
@@ -143,10 +143,13 @@ class SingleLine:
     def set_extended_chars(cls, state: str):
         # off, on, only, test
         if state == "off":
+            cls.extended_char = "off"
             cls.char_list = CHAR_LIST
         elif state == "on":
+            cls.extended_char = "on"
             cls.char_list = CHAR_LIST + EXT_CHAR_LIST
         elif state == "only":
+            cls.extended_char = "only"
             cls.char_list = EXT_CHAR_LIST
 
 
@@ -297,6 +300,16 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
                 else:
                     spacer = 1
                     x_list = [x for x in range(0, size_x, spacer)]
+            elif ch == 101:  # e
+                if SingleLine.extended_char == "off":
+                    SingleLine.set_extended_chars("on")
+                else:
+                    SingleLine.set_extended_chars("off")
+            elif ch == 69:  # E
+                if SingleLine.extended_char == "on":
+                    SingleLine.set_extended_chars("only")
+                elif SingleLine.extended_char == "only":
+                    SingleLine.set_extended_chars("on")
 
             elif ch in [100, 68]:  # d, D
                 bold_char = False
@@ -306,6 +319,7 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
                 color_mode = "normal"
                 SingleLine.async_scroll = False
                 delay = 4
+                SingleLine.set_extended_chars("off")
                 if spacer == 2:
                     spacer = 1
                     x_list = [x for x in range(0, size_x, spacer)]
@@ -399,6 +413,8 @@ def display_commands() -> None:
     print("c      Cycle colors")
     print("d      Restore all defaults")
     print("l      Toggle double space lines")
+    print("e      Extended characters on and off")
+    print("E      Extended characters only")
     print("r,t,y,u,i,o,p   Set color")
     print("R,T,Y,U,I,O,P   Set lead character color")
     print("shift 0 - 9 Cycle color delay (0-Fast, 4-Default, 9-Slow)")
