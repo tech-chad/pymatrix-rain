@@ -107,8 +107,8 @@ def test_pymatrix_version():
 
 
 def test_pymatrix_help():
-    with Runner(*pymatrix_run("--help"), width=50, height=38) as h:
-        h.await_text("usage: pymatrix.py")
+    with Runner(*pymatrix_run("--help"), width=50, height=50) as h:
+        h.await_text("usage:")
 
 
 def test_pymatrix_setup_curses_colors():
