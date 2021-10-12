@@ -3,8 +3,8 @@
 import argparse
 import curses
 import datetime
-import getpass
-import hashlib
+# import getpass
+# import hashlib
 import sys
 
 from random import choice
@@ -357,13 +357,6 @@ def setup_curses_colors(color: str) -> None:
         curses.init_pair(x + 1, CURSES_COLOR[c], curses.COLOR_BLACK)
 
 
-def get_password():
-    """ Gets the password and returns a hash of that password. """
-    h = hashlib.sha3_512(b'ter34123fgfg')
-    h.update(bytes(getpass.getpass("Enter password: "), "utf-8"))
-    return h.hexdigest()
-
-
 def positive_int_zero_to_nine(value: str) -> int:
     """
     Used with argparse.
@@ -459,8 +452,6 @@ def argument_parsing(argv: list) -> argparse.Namespace:
                         help="use only extended characters (overrides -e)")
     parser.add_argument("-l", dest="double_space", action="store_true",
                         help="Double space lines")
-    parser.add_argument("-p", dest="use_password", action="store_true",
-                        help="Password protect exit")
     parser.add_argument("--list_colors", action="store_true",
                         help="Show available colors and exit. ")
     parser.add_argument("--list_commands", action="store_true",
@@ -474,7 +465,6 @@ def argument_parsing(argv: list) -> argparse.Namespace:
 
 def main(argv: list = None) -> None:
     args = argument_parsing(argv)
-    password = None
 
     if args.list_colors:
         print(*COLOR_NUMBERS.keys())
@@ -482,9 +472,6 @@ def main(argv: list = None) -> None:
     if args.list_commands:
         display_commands()
         return
-
-    if args.use_password:
-        password = get_password()
 
     if args.test_mode and not args.test_mode_ext:
         SingleLine.set_test_mode()
@@ -514,28 +501,15 @@ def main(argv: list = None) -> None:
     else:
         color_mode = "normal"
 
-    while True:
-        try:
-            try:
-                curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
-                               args.screen_saver, args.color, args.run_timer,
-                               args.lead_color, color_mode, args.double_space)
-            except KeyboardInterrupt:
-                pass
-            if args.use_password:
-                exit_pass = get_password()
-                if exit_pass == password:
-                    break
-            else:
-                break
-        except PyMatrixError as e:
-            print(e)
-            return
-
-        except KeyboardInterrupt:
-            if args.use_password:
-                continue
-            break
+    try:
+        curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
+                       args.screen_saver, args.color, args.run_timer,
+                       args.lead_color, color_mode, args.double_space)
+    except KeyboardInterrupt:
+        pass
+    except PyMatrixError as e:
+        print(e)
+        return
 
 
 if __name__ == "__main__":

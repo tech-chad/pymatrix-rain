@@ -130,22 +130,6 @@ def test_pymatrix_display_commands(capsys):
     assert expected_text in captured_output
 
 
-@pytest.mark.parametrize("password",
-                         ["test", "499823", "asdfwwef", " ", "", "  3432sdfe   "])
-def test_pymatrix_password(password):
-    with Runner(*pymatrix_run("--test_mode", "-p", "-d1")) as h:
-        h.await_text("Enter password:")
-        h.write(password)
-        h.press("Enter")
-        h.await_text("T")
-        h.write("Q")
-        h.await_text("Enter password:")
-        h.write(password)
-        h.press("Enter")
-        h.press("Enter")
-        h.await_exit()
-
-
 def test_pymatrix_control_c_running():
     with Runner("bash") as h:
         h.await_text("$")
@@ -158,24 +142,3 @@ def test_pymatrix_control_c_running():
         h.press("C-c")
         captured = h.screenshot()
         assert "Traceback" not in captured
-
-
-def test_pymatrix_control_c_with_password():
-    with Runner("bash") as h:
-        h.await_text("$")
-        h.write("clear")
-        h.press("Enter")
-        h.write("python3 pymatrix/pymatrix.py --test_mode -p")
-        h.press("Enter")
-        h.await_text("Enter password:")
-        h.write("blueTOWN")
-        h.press("Enter")
-        h.await_text("T")
-        h.press("C-c")
-        h.await_text("Enter password:")
-        h.write("blueTOWN")
-        h.press("Enter")
-        h.press("Enter")
-        captured = h.screenshot()
-        assert "Traceback" not in captured
-        assert "$" in captured
