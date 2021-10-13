@@ -11,6 +11,8 @@ from random import choice
 from random import randint
 from time import sleep
 
+from typing import Optional
+from typing import Sequence
 from typing import Tuple
 from typing import Union
 
@@ -419,7 +421,7 @@ def display_commands() -> None:
     print("shift 0 - 9 Cycle color delay (0-Fast, 4-Default, 9-Slow)")
 
 
-def argument_parsing(argv: list) -> argparse.Namespace:
+def argument_parsing(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     """ Command line argument parsing. """
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", dest="delay", type=positive_int_zero_to_nine, default=4,
@@ -463,7 +465,7 @@ def argument_parsing(argv: list) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def main(argv: list = None) -> None:
+def main(argv: Optional[Sequence[str]] = None) -> None:
     args = argument_parsing(argv)
 
     if args.list_colors:
