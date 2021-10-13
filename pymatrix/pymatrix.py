@@ -3,8 +3,6 @@
 import argparse
 import curses
 import datetime
-# import getpass
-# import hashlib
 import sys
 
 from random import choice
