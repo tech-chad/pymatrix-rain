@@ -111,6 +111,13 @@ def test_pymatrix_help():
         h.await_text("usage:")
 
 
+def test_wakeup_help_suppressed():
+    with Runner(*pymatrix_run("--help"), width=50, height=50) as h:
+        h.await_text("--version")
+        screen_shot = h.screenshot()
+        assert "wakeup" not in screen_shot
+
+
 def test_pymatrix_setup_curses_colors():
     with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_colors("random")
@@ -142,3 +149,27 @@ def test_pymatrix_control_c_running():
         h.press("C-c")
         captured = h.screenshot()
         assert "Traceback" not in captured
+
+
+def test_pymatrix_wakeup():
+    # this is a long test
+    with Runner(*pymatrix_run("--test_mode", "--wakeup")) as h:
+        h.await_text("T")
+        h.default_timeout = 10
+        h.await_text("Wake up, Neo...")
+        h.await_text("The Matrix has you...")
+        h.await_text("Follow the white rabbit.")
+        h.await_text("Knock, knock, Neo.")
+        h.await_text("T")
+
+
+def test_pymatrix_wakeup_do_not_quit_on_q():
+    # this is a long test
+    with Runner(*pymatrix_run("--test_mode", "--wakeup")) as h:
+        h.await_text("T")
+        h.default_timeout = 10
+        h.await_text("Wake up, Neo...")
+        h.write("q")
+        h.press("Enter")
+        h.await_text("Knock, knock, Neo.")
+        h.await_text("T")

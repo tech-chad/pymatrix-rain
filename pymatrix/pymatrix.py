@@ -155,8 +155,12 @@ class SingleLine:
 
 def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_saver: bool,
                 color: str, run_timer: int, lead_color: str, color_mode: str,
-                double_space: bool) -> None:
+                double_space: bool, wake_up: bool, test_mode: bool) -> None:
     """ Main loop. """
+    if test_mode:
+        wake_up_time = 20
+    else:
+        wake_up_time = randint(2000, 3000)
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
     setup_curses_colors(color)
@@ -249,6 +253,14 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
         for rem in remove_list:
             line_list.pop(line_list.index(rem))
             x_list.append(rem.x)
+
+        if wake_up:
+            if wake_up_time <= 0:
+                wake_up_neo(screen, test_mode)
+                wake_up_time = randint(2000, 3000)
+                _ = screen.getch()
+            else:
+                wake_up_time -= 1
 
         if run_timer and datetime.datetime.now() >= end_time:
             break
@@ -357,6 +369,29 @@ def setup_curses_colors(color: str) -> None:
         curses.init_pair(x + 1, CURSES_COLOR[c], curses.COLOR_BLACK)
 
 
+def wake_up_neo(screen, test_mode: bool) -> None:
+    z = 0.06 if test_mode else 1  # Test mode off set. To make test time shorter.
+    screen.erase()
+    screen.refresh()
+    sleep(3 * z)
+    display_text(screen, "Wake up, Neo...", 0.08 * z, 7.0 * z)
+    display_text(screen, "The Matrix has you...", 0.25 * z, 7.0 * z)
+    display_text(screen, "Follow the white rabbit.", 0.1 * z, 7.0 * z)
+    display_text(screen, "Knock, knock, Neo.", 0.01 * z, 3.0 * z)
+    sleep(2 * z)
+
+
+def display_text(screen, text: str, type_time: float, hold_time: float) -> None:
+    for i, letter in enumerate(text, start=1):
+        screen.addstr(1, i, letter,
+                      curses.color_pair(curses.COLOR_GREEN) + curses.A_BOLD)
+        screen.refresh()
+        sleep(type_time)
+    sleep(hold_time)
+    screen.erase()
+    screen.refresh()
+
+
 def positive_int_zero_to_nine(value: str) -> int:
     """
     Used with argparse.
@@ -458,6 +493,7 @@ def argument_parsing(argv: Optional[Sequence[str]] = None) -> argparse.Namespace
                         help="List Commands and exit")
     parser.add_argument("--version", action="version", version=f"Version: {version}")
 
+    parser.add_argument("--wakeup", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--test_mode", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--test_mode_ext", action="store_true", help=argparse.SUPPRESS)
     return parser.parse_args(argv)
@@ -504,7 +540,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     try:
         curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
                        args.screen_saver, args.color, args.run_timer,
-                       args.lead_color, color_mode, args.double_space)
+                       args.lead_color, color_mode, args.double_space, args.wakeup,
+                       args.test_mode)
     except KeyboardInterrupt:
         pass
     except PyMatrixError as e:
