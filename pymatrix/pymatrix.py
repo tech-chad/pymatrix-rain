@@ -131,13 +131,16 @@ class SingleLine:
         return None
 
     @classmethod
-    def set_test_mode(cls, extended: str = "off") -> None:
-        if extended == "off":
-            SingleLine.char_list = ["T"]
-        elif extended == "on":
-            SingleLine.char_list = ["T", chr(35)]
-        elif extended == "only":
-            SingleLine.char_list = [chr(35)]
+    def set_test_mode(cls, state: bool, extended: str = "off") -> None:
+        if state:
+            if extended == "off":
+                cls.char_list = ["T"]
+            elif extended == "on":
+                cls.char_list = ["T", chr(35)]
+            elif extended == "only":
+                cls.char_list = [chr(35)]
+        else:
+            cls.char_list = CHAR_LIST
 
     @classmethod
     def set_extended_chars(cls, state: str):
@@ -155,8 +158,15 @@ class SingleLine:
 
 def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_saver: bool,
                 color: str, run_timer: int, lead_color: str, color_mode: str,
-                double_space: bool, wake_up: bool, test_mode: bool) -> None:
+                double_space: bool, wake_up: bool, test_mode: bool,
+                test_mode_ext: bool) -> None:
     """ Main loop. """
+    if test_mode and not test_mode_ext:
+        SingleLine.set_test_mode(True)
+    elif test_mode and test_mode_ext:
+        SingleLine.set_test_mode(True, extended="on")
+    elif test_mode_ext:
+        SingleLine.set_test_mode(True, extended="only")
     if test_mode:
         wake_up_time = 20
     else:
@@ -509,13 +519,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         display_commands()
         return
 
-    if args.test_mode and not args.test_mode_ext:
-        SingleLine.set_test_mode()
-    elif args.test_mode and args.test_mode_ext:
-        SingleLine.set_test_mode(extended="on")
-    elif args.test_mode_ext:
-        SingleLine.set_test_mode(extended="only")
-
     if args.ext:
         SingleLine.set_extended_chars("on")
     if args.ext_only:
@@ -541,7 +544,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
                        args.screen_saver, args.color, args.run_timer,
                        args.lead_color, color_mode, args.double_space, args.wakeup,
-                       args.test_mode)
+                       args.test_mode, args.test_mode_ext)
     except KeyboardInterrupt:
         pass
     except PyMatrixError as e:

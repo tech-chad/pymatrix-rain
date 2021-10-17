@@ -18,11 +18,23 @@ def pymatrix_run(*args):
 def test_pymatrix_screen_test_mode():
     with Runner(*pymatrix_run("--test_mode", "-d1")) as h:
         h.await_text("T")
+        sc = h.screenshot()
+        assert "x" not in sc
 
 
 def test_pymatrix_screen_test_mode_ext():
-    with Runner(*pymatrix_run("--test_mode_ext"), "-d1") as h:
+    with Runner(*pymatrix_run("--test_mode_ext", "-d1")) as h:
         h.await_text(chr(35))
+        sc = h.screenshot()
+        assert "x" not in sc
+
+
+def test_pymatrix_screen_test_mode_both():
+    with Runner(*pymatrix_run("--test_mode_ext", "--test_mode", "-d1")) as h:
+        h.await_text(chr(35))
+        h.await_text("T")
+        sc = h.screenshot()
+        assert "x" not in sc
 
 
 @pytest.mark.parametrize("test_key", ["Q", "q"])
