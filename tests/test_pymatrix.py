@@ -56,28 +56,65 @@ def test_pymatrix_quit_screen_saver_mode(test_key):
         h.await_exit()
 
 
-def test_pymatrix_screen_resize_width_very_narrow():
-    # note test can be flaky
-    with Runner(*pymatrix_run("--test_mode", "-d1"), width=50, height=50) as h:
-        h.default_timeout = 3
-        h.await_text("T")
-        h.tmux.execute_command('split-window', '-ht0', '-l', 45)
+@pytest.mark.parametrize("size", [50, 20, 13, 11, 10])
+def test_pymatrix_screen_width_start(size):
+    with Runner(*pymatrix_run("--test_mode"), width=size, height=50) as h:
         h.await_text("T")
 
 
-def test_pymatrix_screen_resize_height_very_short():
-    with Runner(*pymatrix_run("--test_mode", "-d1"), width=50, height=50) as h:
-        h.default_timeout = 3
+@pytest.mark.parametrize("size", [9, 8, 7])
+def test_pymatrix_screen_width_start_fail(size):
+    with Runner(*pymatrix_run("--test_mode"), width=size, height=50) as h:
+        h.await_text("Error screen width is to narrow.")
+
+
+def test_pymatrix_screen_resize_adjust_width():
+    with Runner(*pymatrix_run("--test_mode"), width=50, height=50) as h:
         h.await_text("T")
-        h.tmux.execute_command('split-window', '-vt0', '-l', 43)
+        h.tmux.execute_command('split-window', '-ht0', '-l', 25)
         h.await_text("T")
+        h.tmux.execute_command('resize-pane', '-L', 10)
+        h.await_text("T")
+        h.tmux.execute_command('resize-pane', '-L', 5)
+        h.await_text("Error screen width is to narrow.")
+        sc = h.screenshot()
+        assert "T" not in sc
+        assert "Error" in sc
+
+
+@pytest.mark.parametrize("size", [20, 12, 11, 10])
+def test_pymatrix_screen_height_start(size):
+    with Runner(*pymatrix_run("--test_mode"), width=50, height=size) as h:
+        h.await_text("T")
+
+
+@pytest.mark.parametrize("size", [9, 8, 5])
+def test_pymatrix_screen_height_start_fail(size):
+    with Runner(*pymatrix_run("--test_mode"), width=50, height=size) as h:
+        h.await_text("Error screen height is to short.")
+
+
+def test_pymatrix_screen_resize_adjust_height():
+    with Runner(*pymatrix_run("--test_mode"), width=50, height=50) as h:
+        h.await_text("T")
+        h.tmux.execute_command('split-window', '-vt0', '-l', 25)
+        h.await_text("T")
+        h.tmux.execute_command('resize-pane', '-U', 10)
+        h.await_text("T")
+        h.tmux.execute_command('resize-pane', '-U', 8)
+        h.await_text("Error screen height is to short.")
+        sc = h.screenshot()
+        assert "T" not in sc
+        assert "Error screen height is to short." in sc
 
 
 def test_pymatrix_screen_resize_height_too_short():
     with Runner(*pymatrix_run("--test_mode"), width=50, height=50) as h:
         h.await_text("T")
-        h.tmux.execute_command('split-window', '-vt0', '-l', 47)
+        h.tmux.execute_command('split-window', '-vt0', '-l', 40)
         h.await_text("Error screen height is to short.")
+        sc = h.screenshot()
+        assert "T" not in sc
 
 
 def test_pymatrix_start_timer():

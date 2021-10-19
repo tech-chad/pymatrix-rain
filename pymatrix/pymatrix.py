@@ -58,6 +58,9 @@ CURSES_CH_CODES_COLOR = {114: "red", 82: "red", 116: "green", 84: "green",
 CURSES_CH_CODES_CYCLE = {41: 1, 33: 2, 64: 3, 35: 4, 36: 5, 37: 6,
                          94: 7, 38: 8, 42: 9, 40: 10}
 
+MIN_SCREEN_SIZE_Y = 10
+MIN_SCREEN_SIZE_X = 10
+
 
 class PyMatrixError(Exception):
     pass
@@ -184,8 +187,10 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
         setup_curses_colors("random")
 
     size_y, size_x = screen.getmaxyx()
-    if size_y <= 3:
+    if size_y < MIN_SCREEN_SIZE_Y:
         raise PyMatrixError("Error screen height is to short.")
+    if size_x < MIN_SCREEN_SIZE_X:
+        raise PyMatrixError("Error screen width is to narrow.")
 
     x_list = [x for x in range(0, size_x, spacer)]
 
@@ -206,8 +211,10 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
         resize = curses.is_term_resized(size_y, size_x)
         if resize is True:
             size_y, size_x = screen.getmaxyx()
-            if size_y <= 3:
+            if size_y < MIN_SCREEN_SIZE_Y:
                 raise PyMatrixError("Error screen height is to short.")
+            if size_x < MIN_SCREEN_SIZE_X:
+                raise PyMatrixError("Error screen width is to narrow.")
             x_list = [x for x in range(0, size_x, spacer)]
 
             line_list.clear()
