@@ -196,7 +196,7 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
 
     end_time = datetime.datetime.now() + datetime.timedelta(seconds=run_timer)
     while True:
-        if len(line_list) < size_x - 1:
+        if len(line_list) < size_x - 1 and len(x_list) > 3:
             x = choice(x_list)
             x_list.pop(x_list.index(x))
             line_list.append(SingleLine(x, size_x, size_y))

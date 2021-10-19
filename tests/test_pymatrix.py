@@ -222,3 +222,11 @@ def test_pymatrix_wakeup_do_not_quit_on_q():
         h.press("Enter")
         h.await_text("Knock, knock, Neo.")
         h.await_text("T")
+
+
+@pytest.mark.parametrize("width", [80, 50, 40, 30, 20, 15, 10])
+def test_pymatrix_double_space(width):
+    with Runner(*pymatrix_run("--test_mode", "-l"), width=width, height=50) as h:
+        h.await_text("T")
+        sc = h.screenshot()
+        assert "Traceback" not in sc
