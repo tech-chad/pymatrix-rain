@@ -134,20 +134,19 @@ class SingleLine:
         return None
 
     @classmethod
-    def set_test_mode(cls, state: bool, extended: str = "off") -> None:
-        if state:
-            if extended == "off":
-                cls.char_list = ["T"]
-            elif extended == "on":
-                cls.char_list = ["T", chr(35)]
-            elif extended == "only":
-                cls.char_list = [chr(35)]
+    def set_test_mode(cls, test_mode: bool, extended: bool) -> None:
+        if test_mode and extended:
+            cls.char_list = ["T", chr(35)]
+        elif test_mode:
+            cls.char_list = ["T"]
+        elif extended:
+            cls.char_list = [chr(35)]
         else:
             cls.char_list = CHAR_LIST
 
     @classmethod
     def set_extended_chars(cls, state: str):
-        # off, on, only, test
+        # off, on, only
         if state == "off":
             cls.extended_char = "off"
             cls.char_list = CHAR_LIST
@@ -159,21 +158,14 @@ class SingleLine:
             cls.char_list = EXT_CHAR_LIST
 
 
-def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_saver: bool,
-                color: str, run_timer: int, lead_color: str, color_mode: str,
-                double_space: bool, wake_up: bool, test_mode: bool,
-                test_mode_ext: bool) -> None:
+def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
     """ Main loop. """
-    if test_mode and not test_mode_ext:
-        SingleLine.set_test_mode(True)
-    elif test_mode and test_mode_ext:
-        SingleLine.set_test_mode(True, extended="on")
-    elif test_mode_ext:
-        SingleLine.set_test_mode(True, extended="only")
-    if test_mode:
-        wake_up_time = 20
-    else:
-        wake_up_time = randint(2000, 3000)
+    delay = args.delay
+    bold_char = args.bold_on
+    bold_all = args.bold_all
+    color = args.color
+    lead_color = args.lead_color
+    double_space = args.double_space
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
     setup_curses_colors(color)
@@ -182,6 +174,13 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
     count = cycle = 0  # used for cycle through colors mode
     cycle_delay = 500
     spacer = 2 if double_space else 1
+
+    if args.test_mode:
+        wake_up_time = 20
+    else:
+        wake_up_time = randint(2000, 3000)
+
+    SingleLine.set_test_mode(args.test_mode, args.test_mode_ext)
 
     if color_mode == "multiple" or color_mode == "random":
         setup_curses_colors("random")
@@ -194,7 +193,7 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
 
     x_list = [x for x in range(0, size_x, spacer)]
 
-    end_time = datetime.datetime.now() + datetime.timedelta(seconds=run_timer)
+    end_time = datetime.datetime.now() + datetime.timedelta(seconds=args.run_timer)
     while True:
         if len(line_list) < size_x - 1 and len(x_list) > 3:
             x = choice(x_list)
@@ -271,18 +270,18 @@ def matrix_loop(screen, delay: int, bold_char: bool, bold_all: bool, screen_save
             line_list.pop(line_list.index(rem))
             x_list.append(rem.x)
 
-        if wake_up:
+        if args.wakeup:
             if wake_up_time <= 0:
-                wake_up_neo(screen, test_mode)
+                wake_up_neo(screen, args.test_mode)
                 wake_up_time = randint(2000, 3000)
                 _ = screen.getch()
             else:
                 wake_up_time -= 1
 
-        if run_timer and datetime.datetime.now() >= end_time:
+        if args.run_timer and datetime.datetime.now() >= end_time:
             break
         ch = screen.getch()
-        if screen_saver and ch != -1:
+        if args.screen_saver and ch != -1:
             break
         elif ch != -1:
             # Commands:
@@ -533,8 +532,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     if not args.ext and not args.ext_only:
         SingleLine.set_extended_chars("off")
 
-    sleep(args.start_timer)
-
     if args.async_scroll:
         SingleLine.async_scroll = True
 
@@ -547,11 +544,10 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     else:
         color_mode = "normal"
 
+    sleep(args.start_timer)
+
     try:
-        curses.wrapper(matrix_loop, args.delay, args.bold_on, args.bold_all,
-                       args.screen_saver, args.color, args.run_timer,
-                       args.lead_color, color_mode, args.double_space, args.wakeup,
-                       args.test_mode, args.test_mode_ext)
+        curses.wrapper(matrix_loop, color_mode, args)
     except KeyboardInterrupt:
         pass
     except PyMatrixError as e:

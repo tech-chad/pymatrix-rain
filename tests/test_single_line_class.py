@@ -127,18 +127,18 @@ def test_get_remove_past_height():
 
 
 def test_set_test_mode():
-    pymatrix.SingleLine.set_test_mode(True)
+    pymatrix.SingleLine.set_test_mode(True, False)
     assert pymatrix.SingleLine.char_list == ["T"]
-    pymatrix.SingleLine.set_test_mode(False)
+    pymatrix.SingleLine.set_test_mode(False, False)
 
 
-@pytest.mark.parametrize("test_value, expected_result", [
-    ("off", ["T"]), ("on", ["T", chr(35)]), ("only", [chr(35)])
+@pytest.mark.parametrize("mode, ext, expected_result", [
+    (True, False, ["T"]), (True, True, ["T", chr(35)]), (False, True, [chr(35)])
 ])
-def test_set_test_mode_ext(test_value, expected_result):
-    pymatrix.SingleLine.set_test_mode(True, test_value)
+def test_set_test_mode_ext(mode, ext, expected_result):
+    pymatrix.SingleLine.set_test_mode(mode, ext)
     assert pymatrix.SingleLine.char_list == expected_result
-    pymatrix.SingleLine.set_test_mode(False)
+    pymatrix.SingleLine.set_test_mode(False, False)
 
 
 @pytest.mark.parametrize("state, expected", [
