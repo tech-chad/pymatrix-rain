@@ -157,6 +157,13 @@ class SingleLine:
             cls.extended_char = "only"
             cls.char_list = EXT_CHAR_LIST
 
+    @classmethod
+    def set_zero_one(cls, mode: bool):
+        if mode:
+            cls.char_list = ["0", "1"]
+        else:
+            cls.char_list = CHAR_LIST
+
 
 def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
     """ Main loop. """
@@ -174,6 +181,7 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
     count = cycle = 0  # used for cycle through colors mode
     cycle_delay = 500
     spacer = 2 if double_space else 1
+    zero_one = args.zero_one
 
     if args.test_mode:
         wake_up_time = 20
@@ -181,6 +189,8 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
         wake_up_time = randint(2000, 3000)
 
     SingleLine.set_test_mode(args.test_mode, args.test_mode_ext)
+    if zero_one:
+        SingleLine.set_zero_one(True)
 
     if color_mode == "multiple" or color_mode == "random":
         setup_curses_colors("random")
@@ -344,8 +354,22 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
                     SingleLine.set_extended_chars("only")
                 elif SingleLine.extended_char == "only":
                     SingleLine.set_extended_chars("on")
+            elif ch == 122 and not zero_one:  # z
+                SingleLine.set_zero_one(True)
+                line_list.clear()
+                screen.clear()
+                screen.refresh()
+                zero_one = True
+            elif ch == 90 and zero_one:  # Z
+                SingleLine.set_zero_one(False)
+                line_list.clear()
+                screen.clear()
+                screen.refresh()
+                zero_one = False
 
             elif ch in [100, 68]:  # d, D
+                SingleLine.set_zero_one(False)
+                zero_one = False
                 bold_char = False
                 bold_all = False
                 setup_curses_colors("green")
@@ -465,6 +489,8 @@ def display_commands() -> None:
     print("l      Toggle double space lines")
     print("e      Extended characters on and off")
     print("E      Extended characters only")
+    print("z      1 and 0 Mode On")
+    print("Z      1 and 0 Mode Off")
     print("r,t,y,u,i,o,p   Set color")
     print("R,T,Y,U,I,O,P   Set lead character color")
     print("shift 0 - 9 Cycle color delay (0-Fast, 4-Default, 9-Slow)")
@@ -503,6 +529,8 @@ def argument_parsing(argv: Optional[Sequence[str]] = None) -> argparse.Namespace
                         help="use only extended characters (overrides -e)")
     parser.add_argument("-l", dest="double_space", action="store_true",
                         help="Double space lines")
+    parser.add_argument("-z", dest="zero_one", action="store_true",
+                        help="Show only zero and ones. Binary")
     parser.add_argument("--list_colors", action="store_true",
                         help="Show available colors and exit. ")
     parser.add_argument("--list_commands", action="store_true",

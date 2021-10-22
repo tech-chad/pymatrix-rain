@@ -1,6 +1,7 @@
 from unittest import mock
 import pytest
 from hecate import Runner
+from time import sleep
 
 from pymatrix import pymatrix
 
@@ -230,3 +231,45 @@ def test_pymatrix_double_space(width):
         h.await_text("T")
         sc = h.screenshot()
         assert "Traceback" not in sc
+
+
+def test_pymatrix_zero_one_command_line():
+    with Runner(*pymatrix_run("-z", "-l"), width=75, height=50) as h:
+        h.await_text("0")
+        h.await_text("1")
+        sc = h.screenshot()
+        assert "T" not in sc
+        assert "5" not in sc
+
+
+def test_pymatrix_zero_one_running_command():
+    with Runner(*pymatrix_run("--test_mode", "-l"), width=100, height=50) as h:
+        h.await_text("T")
+        h.write("z")
+        h.press("Enter")
+        h.await_text("0")
+        h.await_text("1")
+        sc = h.screenshot()
+        assert "T" not in sc
+        assert "5" not in sc
+        h.default_timeout = 4
+        h.write("Z")
+        h.press("Enter")
+        sleep(3)
+        h.await_text("T")
+        sc = h.screenshot()
+        assert "T" in sc
+        assert "5" in sc
+
+
+def test_pymatrix_no_zero_one_running():
+    with Runner(*pymatrix_run("--test_mode"), width=100, height=50) as h:
+        h.await_text("T")
+        h.write("Z")
+        h.press("Enter")
+        sleep(2)
+        h.default_timeout = 3
+        h.await_text("T")
+        sc = h.screenshot()
+        for letter in "AaBbCcDe0987654321ZzRrOoPpQqWweEYyUuIiOoPpKkLlJjmMnNXxSsgGhH":
+            assert letter not in sc

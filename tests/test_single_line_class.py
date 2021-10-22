@@ -149,3 +149,10 @@ def test_set_test_mode_ext(mode, ext, expected_result):
 def test_set_extended_chars(state, expected):
     pymatrix.SingleLine.set_extended_chars(state)
     assert pymatrix.SingleLine.char_list == expected
+
+
+def test_zero_and_one():
+    pymatrix.SingleLine.set_zero_one(True)
+    assert pymatrix.SingleLine.char_list == ["0", "1"]
+    pymatrix.SingleLine.set_zero_one(False)
+    assert pymatrix.SingleLine.char_list == pymatrix.CHAR_LIST

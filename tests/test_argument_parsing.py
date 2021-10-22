@@ -170,6 +170,14 @@ def test_argument_parsing_wakeup(test_value, expected_result):
     assert result.wakeup == expected_result
 
 
+@pytest.mark.parametrize("test_value, expected_result", [
+    ([], False), (["-z"], True),
+])
+def test_argument_parsing_zero_one(test_value, expected_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.zero_one == expected_result
+
+
 # testing helper functions
 @pytest.mark.parametrize("test_values, expected_results", [
     ("0", 0), ("1", 1), ("2", 2), ("3", 3), ("4", 4),
