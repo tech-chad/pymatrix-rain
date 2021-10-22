@@ -11,7 +11,6 @@ Matrix rain effect using python 3 and curses.
 
 > not tested on windows or mac
 
-> -p password option is not securely implemented
 
 ###  Commands
 - **<kbd>Q</kbd>** = *quits*
@@ -26,7 +25,9 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>c</kbd>** = *cycle through colors automatically*
 - **<kbd>l</kbd>** = *toggle double space lines*
 - **<kbd>e</kbd>** = *toggle extended characters*
-- **<kbd>E</kbd>** = *only extended characters if on"
+- **<kbd>E</kbd>** = *only extended characters if on*
+- **<kbd>z</kbd>** = *Zero and One Mode On*
+- **<kbd>Z</kbd>** = *Zero and One Mode Off*
 - **<kbd>shift 0-9</kbd>** = *cycle color delay*
 
 ##### rain colors
@@ -56,3 +57,6 @@ Matrix rain effect using python 3 and curses.
 ![screen3.png](https://i.fluffy.cc/WHXssN9PRl9GfGqgGRBfZmpZKNGLk2DC.png)
 
 ![screen4.png](https://i.fluffy.cc/977jk4tNLV7tPdfw9B46VM2m6NNRqwt6.png)
+
+Zero and One Option:
+![screen5.png](https://i.fluffy.cc/G0qMmWzfjSchhhCPzmkgn7wDz79jq12P.png)
