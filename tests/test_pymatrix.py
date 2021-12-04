@@ -302,3 +302,29 @@ def test_pymatrix_no_zero_one_running():
         sc = h.screenshot()
         for letter in "AaBbCcDe0987654321ZzRrOoPpQqWweEYyUuIiOoPpKkLlJjmMnNXxSsgGhH":
             assert letter not in sc
+
+
+def test_pymatrix_disable_keys():
+    with Runner(*pymatrix_run("--test_mode", "--disable_keys")) as h:
+        h.default_timeout = 2
+        h.await_text("T")
+        h.write("z")
+        h.press("Enter")
+        sleep(0.2)
+        h.await_text("T")
+        sc = h.screenshot()
+        assert "1" not in sc
+
+
+def test_pymatrix_disable_keys_quit():
+    with Runner(*pymatrix_run("--test_mode", "--disable_keys")) as h:
+        h.await_text("T")
+        h.write("Q")
+        h.await_exit()
+
+
+def test_pymatrix_disable_keys_and_screen_saver():
+    with Runner(*pymatrix_run("--test_mode", "-s", "--disable_keys")) as h:
+        h.await_text("T")
+        h.write("d")
+        h.await_exit()

@@ -294,7 +294,9 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
         ch = screen.getch()
         if args.screen_saver and ch != -1:
             break
-        elif ch != -1:
+        if ch in [81, 113]:  # q, Q
+            break
+        elif ch != -1 and not args.disable_keys:
             # Commands:
             if ch == 119 and keys_pressed == 0:  # w
                 keys_pressed = 1
@@ -399,8 +401,8 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
             elif color_mode == "cycle" and ch in CURSES_CH_CODES_CYCLE.keys():
                 cycle_delay = 100 * CURSES_CH_CODES_CYCLE[ch]
                 count = cycle_delay
-            elif ch in [81, 113]:  # q, Q
-                break
+            # elif ch in [81, 113]:  # q, Q
+            #     break
             elif ch in CURSES_CH_CODES.keys():
                 delay = CURSES_CH_CODES[ch]
         sleep(DELAY_SPEED[delay])
@@ -546,6 +548,9 @@ def argument_parsing(argv: Optional[Sequence[str]] = None) -> argparse.Namespace
                         help="Double space lines")
     parser.add_argument("-z", dest="zero_one", action="store_true",
                         help="Show only zero and ones. Binary")
+    parser.add_argument("--disable_keys", action="store_true",
+                        help="Disable keys except for Q to quit. Screensaver mode will"
+                             "not be affected")
     parser.add_argument("--list_colors", action="store_true",
                         help="Show available colors and exit. ")
     parser.add_argument("--list_commands", action="store_true",
