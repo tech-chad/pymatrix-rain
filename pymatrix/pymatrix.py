@@ -182,6 +182,7 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
     cycle_delay = 500
     spacer = 2 if double_space else 1
     zero_one = args.zero_one
+    keys_pressed = 0
 
     if args.test_mode:
         wake_up_time = 20
@@ -295,6 +296,19 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
             break
         elif ch != -1:
             # Commands:
+            if ch == 119 and keys_pressed == 0:  # w
+                keys_pressed = 1
+            elif ch == 65 and keys_pressed == 1:  # A
+                keys_pressed = 2
+            elif ch == 107 and keys_pressed == 2:  # k
+                keys_pressed = 3
+            elif ch == 101 and keys_pressed == 3:  # e
+                wake_up_neo(screen, args.test_mode)
+                _ = screen.getch()
+                keys_pressed = 0
+                continue
+            else:
+                keys_pressed = 0
             if ch == 98:  # b
                 bold_char = True
                 bold_all = False
@@ -366,7 +380,8 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
                 screen.clear()
                 screen.refresh()
                 zero_one = False
-
+            elif ch == 23:  # ctrl-w
+                args.wakeup = not args.wakeup
             elif ch in [100, 68]:  # d, D
                 SingleLine.set_zero_one(False)
                 zero_one = False

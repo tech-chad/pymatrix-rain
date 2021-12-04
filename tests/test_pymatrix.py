@@ -213,6 +213,35 @@ def test_pymatrix_wakeup():
         h.await_text("T")
 
 
+def test_pymatrix_wakeup_key_command():
+    # this is a long test
+    with Runner(*pymatrix_run("--test_mode")) as h:
+        h.await_text("T")
+        h.press("C-w")
+        h.default_timeout = 10
+        h.await_text("Wake up, Neo...")
+        h.await_text("The Matrix has you...")
+        h.await_text("Follow the white rabbit.")
+        h.await_text("Knock, knock, Neo.")
+        h.await_text("T")
+
+
+def test_pymatrix_wakeup_now_keys():
+    # this is a long test
+    with Runner(*pymatrix_run("--test_mode")) as h:
+        h.await_text("T")
+        h.default_timeout = 10
+        h.write("w")
+        h.write("A")
+        h.write("k")
+        h.write("e")
+        h.await_text("Wake up, Neo...")
+        h.await_text("The Matrix has you...")
+        h.await_text("Follow the white rabbit.")
+        h.await_text("Knock, knock, Neo.")
+        h.await_text("T")
+
+
 def test_pymatrix_wakeup_do_not_quit_on_q():
     # this is a long test
     with Runner(*pymatrix_run("--test_mode", "--wakeup")) as h:
