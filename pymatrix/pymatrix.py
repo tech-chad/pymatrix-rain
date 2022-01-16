@@ -405,6 +405,17 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
             #     break
             elif ch in CURSES_CH_CODES.keys():
                 delay = CURSES_CH_CODES[ch]
+            elif ch == 102:  # f
+                quit_matrix = False
+                while True:
+                    ch = screen.getch()
+                    if ch == 102:
+                        break
+                    elif ch in [81, 113]:
+                        quit_matrix = True
+                        break
+                if quit_matrix:
+                    break
         sleep(DELAY_SPEED[delay])
 
     screen.erase()
@@ -508,6 +519,7 @@ def display_commands() -> None:
     print("E      Extended characters only")
     print("z      1 and 0 Mode On")
     print("Z      1 and 0 Mode Off")
+    print("f      Freeze the matrix (q will still quit")
     print("r,t,y,u,i,o,p   Set color")
     print("R,T,Y,U,I,O,P   Set lead character color")
     print("shift 0 - 9 Cycle color delay (0-Fast, 4-Default, 9-Slow)")

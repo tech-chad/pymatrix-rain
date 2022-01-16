@@ -328,3 +328,41 @@ def test_pymatrix_disable_keys_and_screen_saver():
         h.await_text("T")
         h.write("d")
         h.await_exit()
+
+
+def test_pymatrix_freeze():
+    with Runner(*pymatrix_run("--test_mode"), width=100, height=10) as h:
+        h.default_timeout = 2
+        h.await_text("T")
+        h.write("f")
+        sleep(0.05)
+        sc = h.screenshot()
+        sleep(1)
+        sc2 = h.screenshot()
+        assert sc == sc2
+        h.write("f")
+        sleep(0.5)
+        sc3 = h.screenshot()
+        assert sc3 != sc2
+
+
+def test_pymatrix_freeze_quit():
+    with Runner(*pymatrix_run("--test_mode"), width=100, height=10) as h:
+        h.default_timeout = 2
+        h.await_text("T")
+        h.write("f")
+        sleep(0.05)
+        h.write("q")
+        h.await_exit()
+
+
+def test_pymatrix_freeze_no_other_keys():
+    with Runner(*pymatrix_run("--test_mode"), width=100, height=10) as h:
+        h.default_timeout = 2
+        h.await_text("T")
+        h.write("f")
+        sleep(0.05)
+        sc = h.screenshot()
+        h.write("z")
+        sleep(0.5)
+        assert h.screenshot() == sc

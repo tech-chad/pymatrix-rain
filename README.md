@@ -28,6 +28,7 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>E</kbd>** = *only extended characters if on*
 - **<kbd>z</kbd>** = *Zero and One Mode On*
 - **<kbd>Z</kbd>** = *Zero and One Mode Off*
+- **<kbd>f</kbd>** = *Freeze and unfreeze the matrix. Can still use **<kbd>Q</kbd>** to quit.*
 - **<kbd>shift 0-9</kbd>** = *cycle color delay*
 
 ##### rain colors
