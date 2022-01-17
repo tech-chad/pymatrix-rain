@@ -41,19 +41,21 @@ DELAY_SPEED = {0: 0.005, 1: 0.01, 2: 0.025, 3: 0.04, 4: 0.055, 5: 0.07,
                6: 0.085, 7: 0.1, 8: 0.115, 9: 0.13}
 
 COLOR_NUMBERS = {"red": 1, "green": 2, "blue": 3, "yellow": 4, "magenta": 5,
-                 "cyan": 6, "white": 7}
+                 "cyan": 6, "white": 7, "black": 8}
 
 CURSES_COLOR = {"red": curses.COLOR_RED, "green": curses.COLOR_GREEN,
                 "blue": curses.COLOR_BLUE, "yellow": curses.COLOR_YELLOW,
                 "magenta": curses.COLOR_MAGENTA, "cyan": curses.COLOR_CYAN,
-                "white": curses.COLOR_WHITE}
+                "white": curses.COLOR_WHITE, "black": curses.COLOR_BLACK}
 
 CURSES_CH_CODES = {48: 0, 49: 1, 50: 2, 51: 3, 52: 4, 53: 5, 54: 6, 55: 7, 56: 8, 57: 9}
 
 CURSES_CH_CODES_COLOR = {114: "red", 82: "red", 116: "green", 84: "green",
                          121: "blue", 89: "blue", 117: "yellow", 85: "yellow",
                          105: "magenta", 73: "magenta", 111: "cyan",
-                         79: "cyan", 112: "white", 80: "white"}
+                         79: "cyan", 112: "white", 80: "white", 18: "red",
+                         20: "green", 25: "blue", 21: "yellow", 9: "magenta",
+                         15: "cyan", 16: "white", 27: "black", 91: "black", 123: "black"}
 
 CURSES_CH_CODES_CYCLE = {41: 1, 33: 2, 64: 3, 35: 4, 36: 5, 37: 6,
                          94: 7, 38: 8, 42: 9, 40: 10}
@@ -175,14 +177,15 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
     double_space = args.double_space
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
-    setup_curses_colors(color)
-    curses_lead_color(lead_color)
+    setup_curses_colors(color, args.background)
+    curses_lead_color(lead_color, args.background)
     line_list = []
     count = cycle = 0  # used for cycle through colors mode
     cycle_delay = 500
     spacer = 2 if double_space else 1
     zero_one = args.zero_one
     keys_pressed = 0
+    screen.bkgd(" ", curses.color_pair(1))
 
     if args.test_mode:
         wake_up_time = 20
@@ -194,7 +197,7 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
         SingleLine.set_zero_one(True)
 
     if color_mode == "multiple" or color_mode == "random":
-        setup_curses_colors("random")
+        setup_curses_colors("random", args.background)
 
     size_y, size_x = screen.getmaxyx()
     if size_y < MIN_SCREEN_SIZE_Y:
@@ -235,7 +238,7 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
 
         if color_mode == "cycle":
             if count <= 0:
-                setup_curses_colors(list(CURSES_COLOR.keys())[cycle])
+                setup_curses_colors(list(CURSES_COLOR.keys())[cycle], args.background)
                 count = cycle_delay
                 cycle = 0 if cycle == 6 else cycle + 1
             else:
@@ -320,30 +323,38 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
             elif ch in [78, 110]:  # n or N
                 bold_char = False
                 bold_all = False
-            elif ch in [114, 116, 121, 117, 105, 111, 112]:
-                # r, t, y, u, i, o, p
-                setup_curses_colors(CURSES_CH_CODES_COLOR[ch])
+            elif ch in [114, 116, 121, 117, 105, 111, 112, 91]:
+                # r, t, y, u, i, o, p, [
+                color = CURSES_CH_CODES_COLOR[ch]
+                setup_curses_colors(color, args.background)
                 color_mode = "normal"
-            elif ch in [82, 84, 89, 85, 73, 79, 80]:
-                # R, T, Y, U, I, O, P
-                curses_lead_color(CURSES_CH_CODES_COLOR[ch])
+            elif ch in [82, 84, 89, 85, 73, 79, 80, 123]:
+                # R, T, Y, U, I, O, P, {
+                lead_color = CURSES_CH_CODES_COLOR[ch]
+                curses_lead_color(lead_color, args.background)
+            elif ch in [18, 20, 25, 21, 9, 15, 16, 27]:
+                # ctrl R, T, Y, U, I, O, P, [
+                args.background = CURSES_CH_CODES_COLOR[ch]
+                setup_curses_colors(color, args.background)
+                curses_lead_color(lead_color, args.background)
+                screen.bkgd(" ", curses.color_pair(1))
             elif ch == 97:  # a
                 SingleLine.async_scroll = not SingleLine.async_scroll
             elif ch == 109:  # m
                 if color_mode in ["random", "normal", "cycle"]:
                     color_mode = "multiple"
-                    setup_curses_colors("random")
+                    setup_curses_colors("random", args.background)
                 else:
                     color_mode = "normal"
-                    setup_curses_colors("green")
+                    setup_curses_colors("green", args.background)
 
             elif ch == 77:  # M
                 if color_mode in ["multiple", "normal", "cycle"]:
                     color_mode = "random"
-                    setup_curses_colors("random")
+                    setup_curses_colors("random", args.background)
                 else:
                     color_mode = "normal"
-                    setup_curses_colors("green")
+                    setup_curses_colors("green", args.background)
 
             elif ch == 99:  # c
                 if color_mode in ["random", "multiple", "normal"]:
@@ -389,8 +400,11 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
                 zero_one = False
                 bold_char = False
                 bold_all = False
-                setup_curses_colors("green")
-                curses_lead_color("white")
+                args.background = "black"
+                color = "green"
+                lead_color = "white"
+                setup_curses_colors(color, args.background)
+                curses_lead_color(lead_color, args.background)
                 color_mode = "normal"
                 SingleLine.async_scroll = False
                 delay = 4
@@ -422,11 +436,11 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
     screen.refresh()
 
 
-def curses_lead_color(color: str) -> None:
-    curses.init_pair(10, CURSES_COLOR[color], curses.COLOR_BLACK)
+def curses_lead_color(color: str, background_color: str) -> None:
+    curses.init_pair(10, CURSES_COLOR[color], CURSES_COLOR[background_color])
 
 
-def setup_curses_colors(color: str) -> None:
+def setup_curses_colors(color: str, background_color: str) -> None:
     """ Init colors pairs in the curses. """
     if color == "random":
         color_list = list(CURSES_COLOR.keys())
@@ -434,7 +448,7 @@ def setup_curses_colors(color: str) -> None:
         color_list = [color for _ in range(7)]
 
     for x, c in enumerate(color_list):
-        curses.init_pair(x + 1, CURSES_COLOR[c], curses.COLOR_BLACK)
+        curses.init_pair(x + 1, CURSES_COLOR[c], CURSES_COLOR[background_color])
 
 
 def wake_up_neo(screen, test_mode: bool) -> None:
@@ -520,8 +534,9 @@ def display_commands() -> None:
     print("z      1 and 0 Mode On")
     print("Z      1 and 0 Mode Off")
     print("f      Freeze the matrix (q will still quit")
-    print("r,t,y,u,i,o,p   Set color")
-    print("R,T,Y,U,I,O,P   Set lead character color")
+    print("r,t,y,u,i,o,p,[   Set color")
+    print("R,T,Y,U,I,O,P,{   Set lead character color")
+    print("ctrl + r,t,y,u,i,o,p,[  Set background color")
     print("shift 0 - 9 Cycle color delay (0-Fast, 4-Default, 9-Slow)")
 
 
@@ -560,6 +575,8 @@ def argument_parsing(argv: Optional[Sequence[str]] = None) -> argparse.Namespace
                         help="Double space lines")
     parser.add_argument("-z", dest="zero_one", action="store_true",
                         help="Show only zero and ones. Binary")
+    parser.add_argument("--background", type=color_type, default="black",
+                        help="set background color. Default is black.")
     parser.add_argument("--disable_keys", action="store_true",
                         help="Disable keys except for Q to quit. Screensaver mode will"
                              "not be affected")

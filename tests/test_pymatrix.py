@@ -157,7 +157,7 @@ def test_pymatrix_version():
 
 
 def test_pymatrix_help():
-    with Runner(*pymatrix_run("--help"), width=50, height=50) as h:
+    with Runner(*pymatrix_run("--help"), width=50, height=60) as h:
         h.await_text("usage:")
 
 
@@ -170,13 +170,13 @@ def test_wakeup_help_suppressed():
 
 def test_pymatrix_setup_curses_colors():
     with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
-        pymatrix.setup_curses_colors("random")
-        assert mock_pair.call_count == 7
+        pymatrix.setup_curses_colors("random", "black")
+        assert mock_pair.call_count == 8
 
 
 def test_curses_lead_color():
     with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
-        pymatrix.curses_lead_color("blue")
+        pymatrix.curses_lead_color("blue", "black")
         assert mock_pair.call_count == 1
 
 

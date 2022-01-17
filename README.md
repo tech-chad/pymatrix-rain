@@ -49,6 +49,15 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>O</kbd>** = cyan
 - **<kbd>P</kbd>** = white
 
+##### background colors
+- **<kbd>ctrl-r</kbd>** = red
+- **<kbd>ctrl-t</kbd>** = green
+- **<kbd>ctrl-y</kbd>** = blue
+- **<kbd>ctrl-u</kbd>** = yellow
+- **<kbd>ctrl-i</kbd>** = magenta
+- **<kbd>ctrl-o</kbd>** = cyan
+- **<kbd>ctrl-p</kbd>** = white
+
 ## Screen Shots
 
 ![screen1.png](https://i.fluffy.cc/MKs7Xz0K9hFJn6Np8FTWhF5NNkG7PbQK.png)
@@ -61,3 +70,5 @@ Matrix rain effect using python 3 and curses.
 
 Zero and One Option:
 ![screen5.png](https://i.fluffy.cc/G0qMmWzfjSchhhCPzmkgn7wDz79jq12P.png)
+
+![screen6.png](https://i.fluffy.cc/Fp84jD66bc8vwV4MrKncWR13GcJQhsjK.png)
