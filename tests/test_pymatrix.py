@@ -366,3 +366,16 @@ def test_pymatrix_freeze_no_other_keys():
         h.write("z")
         sleep(0.5)
         assert h.screenshot() == sc
+
+
+@pytest.mark.parametrize("test_value", ["-v", "--reverse"])
+def test_pymatrix_reverse(test_value):
+    with Runner(*pymatrix_run("--test_mode", test_value), width=100, height=10) as h:
+        h.await_text("T")
+
+
+def test_pymatrix_reverse_key():
+    with Runner(*pymatrix_run("--test_mode"), width=100, height=10) as h:
+        h.await_text("T")
+        h.press("v")
+        h.await_text("T")

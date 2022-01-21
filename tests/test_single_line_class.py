@@ -23,7 +23,7 @@ from pymatrix import pymatrix
 
 
 def test_increment():
-    line = pymatrix.SingleLine(5, 20, 20)
+    line = pymatrix.SingleLine(5, 20, 20, False)
     line.increment()
     assert line.lead_y == 1
     assert line.y == 0
@@ -32,8 +32,18 @@ def test_increment():
     assert line.y == 1
 
 
+def test_increment_reverse():
+    line = pymatrix.SingleLine(5, 20, 20, True)
+    line.increment()
+    assert line.lead_y == 16
+    assert line.y == 17
+    line.increment()
+    assert line.lead_y == 15
+    assert line.y == 16
+
+
 def test_increment_past_height():
-    line = pymatrix.SingleLine(5, 20, 6)
+    line = pymatrix.SingleLine(5, 20, 6, False)
     for _ in range(5):
         line.increment()
     assert line.lead_y == 5
@@ -47,7 +57,7 @@ def test_increment_past_height():
 
 
 def test_async_scroll_turn():
-    line = pymatrix.SingleLine(5, 20, 20)
+    line = pymatrix.SingleLine(5, 20, 20, False)
     line.async_scroll_rate = 1
     result = line.async_scroll_turn()
     assert result is False
@@ -58,7 +68,7 @@ def test_async_scroll_turn():
 
 
 def test_add_char():
-    line = pymatrix.SingleLine(5, 20, 20)
+    line = pymatrix.SingleLine(5, 20, 20, False)
     line.add_char()
     assert len(line.data) == 0
     line.increment()
@@ -68,8 +78,20 @@ def test_add_char():
     assert line.data == [(0, "T")]
 
 
+def test_add_char_reverse():
+    line = pymatrix.SingleLine(5, 20, 20, True)
+    with mock.patch.object(pymatrix, "choice", return_value="T"):
+        line.add_char()
+    assert len(line.data) == 1
+    line.increment()
+    with mock.patch.object(pymatrix, "choice", return_value="T"):
+        line.add_char()
+    assert len(line.data) == 2
+    assert line.data == [(18, "T"), (17, "T")]
+
+
 def test_get_new():
-    line = pymatrix.SingleLine(5, 20, 20)
+    line = pymatrix.SingleLine(5, 20, 20, False)
     new = line.get_new()
     assert new is None
     line.increment()
@@ -79,8 +101,19 @@ def test_get_new():
     assert new == (0, 5, "T")
 
 
+def test_get_new_reverse():
+    line = pymatrix.SingleLine(5, 20, 20, True)
+    new = line.get_new()
+    assert new is None
+    line.increment()
+    with mock.patch.object(pymatrix, "choice", return_value="T"):
+        line.add_char()
+        new = line.get_new()
+    assert new == (17, 5, "T")
+
+
 def test_get_lead():
-    line = pymatrix.SingleLine(5, 20, 6)
+    line = pymatrix.SingleLine(5, 20, 6, False)
     with mock.patch.object(pymatrix, "choice", return_value="T"):
         lead = line.get_lead()
     assert lead == (0, 5, "T")
@@ -90,15 +123,33 @@ def test_get_lead():
     assert lead is None
 
 
+def test_get_lead_reverse():
+    line = pymatrix.SingleLine(5, 20, 6, True)
+    with mock.patch.object(pymatrix, "choice", return_value="T"):
+        lead = line.get_lead()
+    assert lead == (3, 5, "T")
+    for _ in range(6):
+        line.increment()
+    lead = line.get_lead()
+    assert lead is None
+
+
 def test_get_remove_first_loop():
-    line = pymatrix.SingleLine(5, 20, 6)
+    line = pymatrix.SingleLine(5, 20, 6, False)
+    line.add_char()
+    rm = line.get_remove()
+    assert rm is None
+
+
+def test_get_remove_first_loop_reverse():
+    line = pymatrix.SingleLine(5, 20, 6, True)
     line.add_char()
     rm = line.get_remove()
     assert rm is None
 
 
 def test_get_remove_data_length():
-    line = pymatrix.SingleLine(5, 20, 6)
+    line = pymatrix.SingleLine(5, 20, 6, False)
     line.length = 3
     line.data = [(0, "T"), (1, "T"), (2, "T")]
     rm = line.get_remove()
@@ -107,7 +158,7 @@ def test_get_remove_data_length():
 
 
 def test_get_remove_y_length():
-    line = pymatrix.SingleLine(5, 20, 6)
+    line = pymatrix.SingleLine(5, 20, 6, False)
     line.length = 5
     line.y = 5
     line.data = [(0, "T"), (1, "T"), (2, "T")]
@@ -117,7 +168,7 @@ def test_get_remove_y_length():
 
 
 def test_get_remove_past_height():
-    line = pymatrix.SingleLine(5, 20, 6)
+    line = pymatrix.SingleLine(5, 20, 6, False)
     line.length = 5
     line.y = 5
     line.data = [(4, "T"), (5, "T")]

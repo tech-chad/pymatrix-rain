@@ -73,24 +73,43 @@ class SingleLine:
     extended_char = "off"
     char_list = CHAR_LIST
 
-    def __init__(self, x: int, width: int, height: int) -> None:
-        self.y = -1
-        self.x = x
-        self.length = randint(3, height - 3)
-        self.data = []
-        self.lead_y = 0
-        self.width = width
-        self.height = height - 2
-        self.line_color_number = randint(1, 7)
-        self.async_scroll_rate = randint(0, 3)
-        self.async_scroll_position = 0
+    def __init__(self, x: int, width: int, height: int, reverse: bool) -> None:
+        self.reverse = reverse
+        if self.reverse:
+            self.y = height - 2
+            self.x = x
+            self.lead_y = height - 3
+            self.length = randint(3, height - 3)
+            self.data = []
+            self.width = width
+            self.height = height - 2
+            self.line_color_number = randint(1, 7)
+            self.async_scroll_rate = randint(0, 3)
+            self.async_scroll_position = 0
+        else:
+            self.y = -1
+            self.x = x
+            self.length = randint(3, height - 3)
+            self.data = []
+            self.lead_y = 0
+            self.width = width
+            self.height = height - 2
+            self.line_color_number = randint(1, 7)
+            self.async_scroll_rate = randint(0, 3)
+            self.async_scroll_position = 0
 
     def increment(self) -> None:
         """ moves the lead y position and y position """
-        if self.lead_y <= self.height:
-            self.lead_y += 1
-        if self.y <= self.height:
-            self.y += 1
+        if self.reverse:
+            if self.lead_y >= 0:
+                self.lead_y -= 1
+            if self.y >= 0:
+                self.y -= 1
+        else:
+            if self.lead_y <= self.height:
+                self.lead_y += 1
+            if self.y <= self.height:
+                self.y += 1
 
     def async_scroll_turn(self) -> bool:
         """ Checks to see if lines turn when async like scrolling is on"""
@@ -103,37 +122,68 @@ class SingleLine:
 
     def add_char(self) -> None:
         """ Adds a random char to the line """
-        if 0 <= self.y <= self.height:
-            self.data.append((self.y, choice(SingleLine.char_list)))
+        if self.reverse:
+            if self.y > 0:
+                self.data.append((self.y, choice(SingleLine.char_list)))
+            else:
+                return None
         else:
-            return None
+            if 0 <= self.y <= self.height:
+                self.data.append((self.y, choice(SingleLine.char_list)))
+            else:
+                return None
 
     def get_new(self) -> Union[Tuple[int, int, str], None]:
         """ Gets the last char that was added"""
-        if 0 <= self.y <= self.height and len(self.data) > 0:
-            new = (self.data[-1][0], self.x, self.data[-1][1])
-            return new
+        if self.reverse:
+            if self.y > 0 and len(self.data) > 0:
+                new = (self.data[-1][0], self.x, self.data[-1][1])
+                return new
+            else:
+                return None
         else:
-            return None
+            if 0 <= self.y <= self.height and len(self.data) > 0:
+                new = (self.data[-1][0], self.x, self.data[-1][1])
+                return new
+            else:
+                return None
 
     def get_lead(self) -> Union[Tuple[int, int, str], None]:
         """ Gets the lead char """
-        if self.lead_y < self.height:
-            return self.lead_y, self.x, choice(SingleLine.char_list)
+        if self.reverse:
+            if self.lead_y > 0:
+                return self.lead_y, self.x, choice(SingleLine.char_list)
+            else:
+                return None
         else:
-            return None
+            if self.lead_y < self.height:
+                return self.lead_y, self.x, choice(SingleLine.char_list)
+            else:
+                return None
 
     def get_remove(self) -> Union[Tuple[int, int, str], None]:
         """ Remove char from list and returns the location to erase """
-        if len(self.data) >= self.length or self.y >= self.height and len(self.data) >= 0:
-            rm = (self.data[0][0], self.x, " ")
-            self.data.pop(0)
-            return rm
-        elif len(self.data) > 0 and self.data[0][0] >= self.height:
-            rm = (self.data[0][0], self.x, " ")
-            self.data.pop(0)
-            return rm
-        return None
+        data_len = len(self.data)
+        if self.reverse:
+            if data_len >= self.length or self.y <= 0:
+                rm = (self.data[0][0], self.x, " ")  # 1
+                self.data.pop(0)
+                return rm
+            elif self.y <= 0 < data_len:
+                rm = (self.data[0][0], self.x, " ")
+                self.data.pop(0)
+                return rm
+            return None
+        else:
+            if data_len >= self.length or self.y >= self.height and data_len >= 0:
+                rm = (self.data[0][0], self.x, " ")
+                self.data.pop(0)
+                return rm
+            elif data_len > 0 and self.data[0][0] >= self.height:
+                rm = (self.data[0][0], self.x, " ")
+                self.data.pop(0)
+                return rm
+            return None
 
     @classmethod
     def set_test_mode(cls, test_mode: bool, extended: bool) -> None:
@@ -212,14 +262,14 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
         if len(line_list) < size_x - 1 and len(x_list) > 3:
             x = choice(x_list)
             x_list.pop(x_list.index(x))
-            line_list.append(SingleLine(x, size_x, size_y))
+            line_list.append(SingleLine(x, size_x, size_y, args.reverse))
             if len(line_list) > 10:
                 x = choice(x_list)
                 x_list.pop(x_list.index(x))
-                line_list.append(SingleLine(x, size_x, size_y))
+                line_list.append(SingleLine(x, size_x, size_y, args.reverse))
                 x = choice(x_list)
                 x_list.pop(x_list.index(x))
-                line_list.append(SingleLine(x, size_x, size_y))
+                line_list.append(SingleLine(x, size_x, size_y, args.reverse))
 
         resize = curses.is_term_resized(size_y, size_x)
         if resize is True:
@@ -276,7 +326,9 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
                               curses.color_pair(10) + bold)
 
             line.increment()
-            if len(line.data) <= 0 and line.y >= size_y - 2:
+            if line.reverse and len(line.data) <= 0 and line.y <= 0:
+                remove_list.append(line)
+            elif len(line.data) <= 0 and line.y >= size_y - 2:
                 remove_list.append(line)
         screen.refresh()
 
@@ -395,6 +447,11 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
                 zero_one = False
             elif ch == 23:  # ctrl-w
                 args.wakeup = not args.wakeup
+            elif ch == 118:  # v
+                args.reverse = not args.reverse
+                line_list.clear()
+                screen.clear()
+                screen.refresh()
             elif ch in [100, 68]:  # d, D
                 SingleLine.set_zero_one(False)
                 zero_one = False
@@ -412,6 +469,12 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
                 if spacer == 2:
                     spacer = 1
                     x_list = [x for x in range(0, size_x, spacer)]
+                if args.reverse:
+                    args.reverse = False
+                    line_list.clear()
+                    screen.clear()
+                    screen.refresh()
+
             elif color_mode == "cycle" and ch in CURSES_CH_CODES_CYCLE.keys():
                 cycle_delay = 100 * CURSES_CH_CODES_CYCLE[ch]
                 count = cycle_delay
@@ -534,6 +597,7 @@ def display_commands() -> None:
     print("z      1 and 0 Mode On")
     print("Z      1 and 0 Mode Off")
     print("f      Freeze the matrix (q will still quit")
+    print("v      Toggle matrix scrolling up")
     print("r,t,y,u,i,o,p,[   Set color")
     print("R,T,Y,U,I,O,P,{   Set lead character color")
     print("ctrl + r,t,y,u,i,o,p,[  Set background color")
@@ -577,6 +641,8 @@ def argument_parsing(argv: Optional[Sequence[str]] = None) -> argparse.Namespace
                         help="Show only zero and ones. Binary")
     parser.add_argument("--background", type=color_type, default="black",
                         help="set background color. Default is black.")
+    parser.add_argument("-v", "--reverse", action="store_true",
+                        help="Reverse the matrix. The matrix scrolls up (vertical)")
     parser.add_argument("--disable_keys", action="store_true",
                         help="Disable keys except for Q to quit. Screensaver mode will"
                              "not be affected")
