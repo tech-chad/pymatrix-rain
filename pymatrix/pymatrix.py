@@ -341,6 +341,7 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
                 wake_up_neo(screen, args.test_mode)
                 wake_up_time = randint(2000, 3000)
                 _ = screen.getch()
+                screen.bkgd(" ", curses.color_pair(1))
             else:
                 wake_up_time -= 1
 
@@ -363,6 +364,7 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
                 wake_up_neo(screen, args.test_mode)
                 _ = screen.getch()
                 keys_pressed = 0
+                screen.bkgd(" ", curses.color_pair(1))
                 continue
             else:
                 keys_pressed = 0
@@ -512,11 +514,14 @@ def setup_curses_colors(color: str, background_color: str) -> None:
 
     for x, c in enumerate(color_list):
         curses.init_pair(x + 1, CURSES_COLOR[c], CURSES_COLOR[background_color])
+    curses.init_pair(21, curses.COLOR_GREEN, curses.COLOR_BLACK)
 
 
 def wake_up_neo(screen, test_mode: bool) -> None:
     z = 0.06 if test_mode else 1  # Test mode off set. To make test time shorter.
     screen.erase()
+    # screen.refresh()
+    screen.bkgd(" ", curses.color_pair(21))
     screen.refresh()
     sleep(3 * z)
     display_text(screen, "Wake up, Neo...", 0.08 * z, 7.0 * z)
@@ -528,8 +533,7 @@ def wake_up_neo(screen, test_mode: bool) -> None:
 
 def display_text(screen, text: str, type_time: float, hold_time: float) -> None:
     for i, letter in enumerate(text, start=1):
-        screen.addstr(1, i, letter,
-                      curses.color_pair(curses.COLOR_GREEN) + curses.A_BOLD)
+        screen.addstr(1, i, letter, curses.color_pair(21) + curses.A_BOLD)
         screen.refresh()
         sleep(type_time)
     sleep(hold_time)
