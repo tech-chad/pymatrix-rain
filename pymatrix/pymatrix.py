@@ -215,19 +215,27 @@ class SingleLine:
             cls.char_list = CHAR_LIST
 
 
-def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
+def matrix_loop(screen, args: argparse.Namespace) -> None:
     """ Main loop. """
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
     setup_curses_colors(args.color, args.background)
     curses_lead_color(args.lead_color, args.background)
     screen.bkgd(" ", curses.color_pair(1))
-    SingleLine.set_test_mode(args.test_mode, args.test_mode_ext)
     count = cycle = 0  # used for cycle through colors mode
     cycle_delay = 500
     line_list = []
     spacer = 2 if args.double_space else 1
     keys_pressed = 0
+    if args.ext:
+        SingleLine.set_extended_chars("on")
+    if args.ext_only:
+        SingleLine.set_extended_chars("only")
+
+    if args.async_scroll:
+        SingleLine.async_scroll = True
+    if args.test_mode or args.test_mode_ext:
+        SingleLine.set_test_mode(args.test_mode, args.test_mode_ext)
 
     if args.test_mode:
         wake_up_time = 20
@@ -237,8 +245,16 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
     if args.zero_one:
         SingleLine.set_zero_one(True)
 
-    if color_mode == "multiple" or color_mode == "random":
+    if args.multiple_mode:
+        color_mode = "multiple"
         setup_curses_colors("random", args.background)
+    elif args.random_mode:
+        color_mode = "random"
+        setup_curses_colors("random", args.background)
+    elif args.cycle:
+        color_mode = "cycle"
+    else:
+        color_mode = "normal"
 
     size_y, size_x = screen.getmaxyx()
     if size_y < MIN_SCREEN_SIZE_Y:
@@ -251,13 +267,7 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
     while True:
         remove_list = []
         if len(line_list) < size_x - 1 and len(x_list) > 3:
-            x = choice(x_list)
-            x_list.pop(x_list.index(x))
-            line_list.append(SingleLine(x, size_x, size_y, args.reverse))
-            if len(line_list) > 10:
-                x = choice(x_list)
-                x_list.pop(x_list.index(x))
-                line_list.append(SingleLine(x, size_x, size_y, args.reverse))
+            for _ in range(2):
                 x = choice(x_list)
                 x_list.pop(x_list.index(x))
                 line_list.append(SingleLine(x, size_x, size_y, args.reverse))
@@ -286,6 +296,7 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
 
         for line in line_list:
             if SingleLine.async_scroll and not line.async_scroll_turn():
+                # Not the line's turn in async scroll mode then continue to the next line.
                 continue
             line.add_char()
             remove_line = line.get_remove()
@@ -301,14 +312,13 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
             else:
                 bold = curses.A_NORMAL
 
-            new_character = line.get_new()
-            if new_character:
+            new_char = line.get_new()
+            if new_char:
                 if color_mode == "random":
-                    screen.addstr(new_character[0], new_character[1], new_character[2],
-                                  curses.color_pair(randint(1, 7)) + bold)
+                    color = curses.color_pair(randint(1, 7))
                 else:
-                    screen.addstr(new_character[0], new_character[1], new_character[2],
-                                  curses.color_pair(line.line_color_number) + bold)
+                    color = curses.color_pair(line.line_color_number)
+                screen.addstr(new_char[0], new_char[1], new_char[2], color + bold)
 
             lead_char = line.get_lead()
             if lead_char:
@@ -389,7 +399,6 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
                 else:
                     color_mode = "normal"
                     setup_curses_colors("green", args.background)
-
             elif ch == 77:  # M
                 if color_mode in ["multiple", "normal", "cycle"]:
                     color_mode = "random"
@@ -397,7 +406,6 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
                 else:
                     color_mode = "normal"
                     setup_curses_colors("green", args.background)
-
             elif ch == 99:  # c
                 if color_mode in ["random", "multiple", "normal"]:
                     color_mode = "cycle"
@@ -464,13 +472,13 @@ def matrix_loop(screen, color_mode: str, args: argparse.Namespace) -> None:
                     line_list.clear()
                     screen.clear()
                     screen.refresh()
-
             elif color_mode == "cycle" and ch in CURSES_CH_CODES_CYCLE_DELAY.keys():
                 cycle_delay = 100 * CURSES_CH_CODES_CYCLE_DELAY[ch]
                 count = cycle_delay
             elif ch in CURSES_CH_CODES_DELAY.keys():
                 args.delay = CURSES_CH_CODES_DELAY[ch]
             elif ch == 102:  # f
+                # Freeze the Matrix
                 quit_matrix = False
                 while True:
                     ch = screen.getch()
@@ -656,29 +664,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         display_commands()
         return
 
-    if args.ext:
-        SingleLine.set_extended_chars("on")
-    if args.ext_only:
-        SingleLine.set_extended_chars("only")
-    if not args.ext and not args.ext_only:
-        SingleLine.set_extended_chars("off")
-
-    if args.async_scroll:
-        SingleLine.async_scroll = True
-
-    if args.multiple_mode:
-        color_mode = "multiple"
-    elif args.random_mode:
-        color_mode = "random"
-    elif args.cycle:
-        color_mode = "cycle"
-    else:
-        color_mode = "normal"
-
     sleep(args.start_timer)
-
     try:
-        curses.wrapper(matrix_loop, color_mode, args)
+        curses.wrapper(matrix_loop, args)
     except KeyboardInterrupt:
         pass
     except PyMatrixError as e:

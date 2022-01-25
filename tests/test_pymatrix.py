@@ -11,11 +11,6 @@ def pymatrix_run(*args):
     return ["python3", "pymatrix/pymatrix.py"] + options
 
 
-# def pymatrix_run_inside(*args):
-#     options = [a for a in args]
-#     return "python3", "pymatrix/pymatrix.py"] + options
-
-
 def test_pymatrix_screen_test_mode():
     with Runner(*pymatrix_run("--test_mode", "-d1")) as h:
         h.await_text("T")
