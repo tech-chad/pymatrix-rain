@@ -166,7 +166,7 @@ def test_wakeup_help_suppressed():
 def test_pymatrix_setup_curses_colors():
     with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_colors("random", "black")
-        assert mock_pair.call_count == 8
+        assert mock_pair.call_count == 9
 
 
 def test_curses_lead_color():
