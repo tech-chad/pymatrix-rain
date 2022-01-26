@@ -60,16 +60,14 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>ctrl-p</kbd>** = white
 
 ## Screen Shots
+![matrix1.png](https://i.fluffy.cc/Vs2ZW5PBdM0QXv7Ljz3LDV7JCg2LJBJK.png)
 
-![screen1.png](https://i.fluffy.cc/MKs7Xz0K9hFJn6Np8FTWhF5NNkG7PbQK.png)
+![matrix2.png](https://i.fluffy.cc/LWwpSxJldKBBVlC260Zc7T5CRg7JN303.png)
 
-![screen2.png](https://i.fluffy.cc/3B88FSK9j8lTRgq4k52ZDLZPf02fpWnv.png)
+![matrix3.png](https://i.fluffy.cc/K0MNwrm4KC69NZRQm1k3JsR9j1FqxjWm.png)
 
-![screen3.png](https://i.fluffy.cc/WHXssN9PRl9GfGqgGRBfZmpZKNGLk2DC.png)
+![matrix4.png](https://i.fluffy.cc/h582RvNQxqcsX5029wcK9q0v2kBPcRMd.png)
 
-![screen4.png](https://i.fluffy.cc/977jk4tNLV7tPdfw9B46VM2m6NNRqwt6.png)
+![matrix5.png](https://i.fluffy.cc/q7xjhc011J6N5nP53dDKrnnJNX7Qp5t3.png)
 
-Zero and One Option:
-![screen5.png](https://i.fluffy.cc/G0qMmWzfjSchhhCPzmkgn7wDz79jq12P.png)
-
-![screen6.png](https://i.fluffy.cc/Fp84jD66bc8vwV4MrKncWR13GcJQhsjK.png)
+![matrix6.png](https://i.fluffy.cc/JdRwzdWxltVxc80RDGg7BDB41hZMFmNN.png)
