@@ -3,13 +3,14 @@ Matrix rain effect using python 3 and curses.
 
 ### How to Download
  >pip install pymatrix-rain
+ >pip install windows-curses
  
  to run: pymatrix-rain
 
 
 ##### NOTE:
 
-> not tested on windows or mac
+> Not tested on Mac
 
 
 ###  Commands
@@ -59,7 +60,15 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>ctrl-o</kbd>** = cyan
 - **<kbd>ctrl-p</kbd>** = white
 
-## Screen Shots
+## Screenshots
+
+# Windows Terminal:
+![custom-terminal.png](/README/custom-terminal.png)
+
+![og-terminal.png](/README/og-terminal.png)
+
+
+# Linux:
 ![matrix1.png](https://i.fluffy.cc/Vs2ZW5PBdM0QXv7Ljz3LDV7JCg2LJBJK.png)
 
 ![matrix2.png](https://i.fluffy.cc/LWwpSxJldKBBVlC260Zc7T5CRg7JN303.png)
