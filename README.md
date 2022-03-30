@@ -5,7 +5,7 @@ Matrix rain effect using Python 3 and windows-curses.
  >pymatrix-rain
 
 ### How to Download
- >pip install pymatrix-rain==1.2.0
+ >pip install pymatrix-rain
  >
  >pip install windows-curses
 
