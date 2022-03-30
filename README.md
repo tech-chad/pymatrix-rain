@@ -1,11 +1,13 @@
 # pymatrix-rain
-Matrix rain effect using python 3 and curses.
+Matrix rain effect using Python 3 and windows-curses.
+
+### How to Run
+ >pymatrix-rain
 
 ### How to Download
- >pip install pymatrix-rain
+ >pip install pymatrix-rain==1.2.0
+ >
  >pip install windows-curses
- 
- to run: pymatrix-rain
 
 
 ##### NOTE:
@@ -33,7 +35,7 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>v</kbd>** = *Toggle the matrix to scroll up*
 - **<kbd>shift 0-9</kbd>** = *cycle color delay*
 
-##### rain colors
+##### Rain colors
 - **<kbd>r</kbd>** = red
 - **<kbd>t</kbd>** = green
 - **<kbd>y</kbd>** = blue
@@ -42,7 +44,7 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>o</kbd>** = cyan
 - **<kbd>p</kbd>** = white
 
-##### lead char color
+##### Lead char color
 - **<kbd>R</kbd>** = red
 - **<kbd>T</kbd>** = green
 - **<kbd>Y</kbd>** = blue
@@ -51,7 +53,7 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>O</kbd>** = cyan
 - **<kbd>P</kbd>** = white
 
-##### background colors
+##### Background colors
 - **<kbd>ctrl-r</kbd>** = red
 - **<kbd>ctrl-t</kbd>** = green
 - **<kbd>ctrl-y</kbd>** = blue
@@ -60,15 +62,15 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>ctrl-o</kbd>** = cyan
 - **<kbd>ctrl-p</kbd>** = white
 
-## Screenshots
+# Screenshots
 
-# Windows Terminal:
+## Windows Terminal:
 ![custom-terminal.png](/README/custom-terminal.png)
 
 ![og-terminal.png](/README/og-terminal.png)
 
 
-# Linux:
+## Linux:
 ![matrix1.png](https://i.fluffy.cc/Vs2ZW5PBdM0QXv7Ljz3LDV7JCg2LJBJK.png)
 
 ![matrix2.png](https://i.fluffy.cc/LWwpSxJldKBBVlC260Zc7T5CRg7JN303.png)
