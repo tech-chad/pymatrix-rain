@@ -27,7 +27,11 @@ CHAR_LIST = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n
              "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3",
              "4", "5", "6", "7", "8", "9", "!", "#", "$", "%", "^", "&", "(", ")",
              "-", "+", "=", "[", "]", "{", "}", "|", ";", ":", "<", ">", ",", ".",
-             "?", "~", "`", "@", "*", "_", "'", "\\", "/", '"']
+             "?", "~", "`", "@", "*", "_", "'", "\\", "/", '"', "ç" "λ", "μ", "π", 
+             "Σ", "Ω", "ｦ", "ｱ", "ｲ", "ｳ", "ｵ", "ｶ", "ｷ", "ｸ", "ｹ", "ｺ", "ｻ", "ｼ", 
+             "ｽ", "ｾ", "ｿ", "ﾀ", "ﾁ", "ﾂ", "ﾃ", "ﾄ", "ﾅ", "ﾆ", "ﾇ", "ﾈ", "ﾉ", "ﾊ", 
+             "ﾋ", "ﾌ", "ﾍ", "ﾎ", "ﾏ", "ﾐ", "ﾑ", "ﾒ", "ﾓ", "ﾔ", "ﾕ", "ﾖ", "ﾗ", "ﾘ", 
+             "ﾙ", "ﾚ", "ﾛ", "ﾜ", "ﾝ"]
 
 EXT_INTS = [199, 200, 204, 205, 208, 209, 210, 215, 216, 217, 218, 221, 222, 223, 224,
             163, 164, 165, 167, 170, 182, 186, 187, 191, 196, 197, 233, 234, 237, 239,
@@ -214,6 +218,18 @@ class SingleLine:
         else:
             cls.char_list = CHAR_LIST
 
+# Fury Changes (Half-width kana)
+    @classmethod
+    def set_hankaku_kana(cls, mode: bool):
+        if mode:
+            cls.char_list = ["ｦ", "ｱ", "ｲ", "ｳ", "ｵ", "ｶ", "ｷ", "ｸ", 
+                            "ｹ", "ｺ", "ｻ", "ｼ", "ｽ", "ｾ", "ｿ", "ﾀ", 
+                            "ﾁ", "ﾂ", "ﾃ", "ﾄ", "ﾅ", "ﾆ", "ﾇ", "ﾈ", 
+                            "ﾉ", "ﾊ", "ﾋ", "ﾌ", "ﾍ", "ﾎ", "ﾏ", "ﾐ", 
+                            "ﾑ", "ﾒ", "ﾓ", "ﾔ", "ﾕ", "ﾖ", "ﾗ", "ﾘ",
+                            "ﾙ", "ﾚ", "ﾛ", "ﾜ", "ﾝ"]
+        else:
+            cls.char_list = CHAR_LIST
 
 def matrix_loop(screen, args: argparse.Namespace) -> None:
     """ Main loop. """
@@ -244,6 +260,10 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
 
     if args.zero_one:
         SingleLine.set_zero_one(True)
+
+# FIX
+    #if args.hankaku_kana:
+     #   SingleLine.set_hankaku_kana(True)
 
     if args.multiple_mode:
         color_mode = "multiple"
@@ -446,6 +466,18 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 screen.clear()
                 screen.refresh()
                 args.zero_one = False
+            elif ch == 104 and not args.hankaku_kana:  # h
+                SingleLine.set_hankaku_kana(True)
+                line_list.clear()
+                screen.clear()
+                screen.refresh()
+                args.hankaku_kana = True
+            elif ch == 72 and args.hankaku_kana:  # H
+                SingleLine.set_hankaku_kana(False)
+                line_list.clear()
+                screen.clear()
+                screen.refresh()
+                args.hankaku_kana = False
             elif ch == 23:  # ctrl-w
                 args.wakeup = not args.wakeup
             elif ch == 118:  # v
@@ -455,7 +487,9 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 screen.refresh()
             elif ch in [100, 68]:  # d, D
                 SingleLine.set_zero_one(False)
+                SingleLine.set_hankaku_kana(False)
                 args.zero_one = False
+                args.hankaku_kana = False
                 args.bold_on = False
                 args.bold_all = False
                 args.background = "black"
