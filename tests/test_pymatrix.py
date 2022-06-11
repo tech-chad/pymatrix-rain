@@ -374,3 +374,49 @@ def test_pymatrix_reverse_key():
         h.await_text("T")
         h.press("v")
         h.await_text("T")
+
+
+def test_build_character_set_all():
+    test_set = pymatrix.build_character_set(["all"])
+    assert "A" in test_set
+    assert "1" in test_set
+    assert "*" in test_set
+    assert "a" in test_set
+    assert chr(199) in test_set
+
+
+def test_build_character_set_zero():
+    test_set = pymatrix.build_character_set(["zero"])
+    assert "1" in test_set
+    assert "0" in test_set
+    assert "B" not in test_set
+    assert "$" not in test_set
+    assert chr(199) not in test_set
+
+
+def test_build_character_set_test():
+    test_set = pymatrix.build_character_set(["test"])
+    assert "T" in test_set
+    assert chr(35) in test_set
+    assert "r" not in test_set
+    assert "@" not in test_set
+    assert "9" not in test_set
+    assert chr(199) not in test_set
+
+
+def test_build_character_set_char():
+    test_set = pymatrix.build_character_set(["char"])
+    assert "A" in test_set
+    assert "1" in test_set
+    assert "#" in test_set
+    assert "a" in test_set
+    assert chr(199) not in test_set
+
+
+def test_build_character_set_ext():
+    test_set = pymatrix.build_character_set(["ext"])
+    assert "A" not in test_set
+    assert "1" not in test_set
+    assert ")" not in test_set
+    assert "a" not in test_set
+    assert chr(199) in test_set

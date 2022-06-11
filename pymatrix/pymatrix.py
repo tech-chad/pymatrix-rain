@@ -67,152 +67,119 @@ class PyMatrixError(Exception):
 
 
 class SingleLine:
-    async_scroll = False
-    extended_char = "off"
-    char_list = CHAR_LIST
-
-    def __init__(self, x: int, width: int, height: int, reverse: bool) -> None:
-        self.reverse = reverse
-        if self.reverse:
-            self.y = height - 2
-            self.x = x
-            self.lead_y = height - 3
-            self.length = randint(3, height - 3)
-            self.data = []
-            self.width = width
-            self.height = height - 2
-            self.line_color_number = randint(1, 7)
-            self.async_scroll_rate = randint(0, 3)
-            self.async_scroll_position = 0
-        else:
+    def __init__(self, x: int, height: int, direction: str):
+        self.direction = direction
+        self.height = height - 2
+        self.async_scroll_count = 0
+        self.async_scroll_rate = randint(0, 4)
+        self.line_color_number = randint(1, 7)  # keep for now
+        if direction == "down":
+            self.lead_y = 0
             self.y = -1
             self.x = x
-            self.length = randint(3, height - 3)
-            self.data = []
-            self.lead_y = 0
-            self.width = width
-            self.height = height - 2
-            self.line_color_number = randint(1, 7)
-            self.async_scroll_rate = randint(0, 3)
-            self.async_scroll_position = 0
+            length = randint(3, height - 3)
+            self.last_y = -length  # track when to start removing characters
+        elif direction == "up":
+            self.lead_y = height - 2
+            self.y = height - 1
+            self.x = x
+            length = randint(3, height - 3)
+            self.last_y = height - 3 + length  # track when to start removing characters
 
-    def increment(self) -> None:
-        """ moves the lead y position and y position """
-        if self.reverse:
-            if self.lead_y >= 0:
-                self.lead_y -= 1
-            if self.y >= 0:
-                self.y -= 1
-        else:
-            if self.lead_y <= self.height:
+    def get_lead(self) -> Union[Tuple[int, int], None]:
+        if self.direction == "down":
+            if self.lead_y > self.height:
+                return None
+            else:
+                lead_y = self.lead_y
                 self.lead_y += 1
-            if self.y <= self.height:
+                return lead_y, self.x
+        elif self.direction == "up":
+            if self.lead_y < 0:
+                return None
+            else:
+                lead_y = self.lead_y
+                self.lead_y -= 1
+                return lead_y, self.x
+
+    def get_next(self) -> Union[Tuple[int, int], None]:
+        if self.direction == "down":
+            if self.y < 0 or self.y > self.height:
                 self.y += 1
+                return None
+            else:
+                y = self.y
+                self.y += 1
+                return y, self.x
+        elif self.direction == "up":
+            if self.y > self.height or self.y < 0:
+                self.y -= 1
+                return None
+            else:
+                y = self.y
+                self.y -= 1
+                return y, self.x
+
+    def delete_last(self) -> Union[Tuple[int, int], None]:
+        if self.direction == "down":
+            if self.last_y < 0 or self.last_y > self.height:
+                self.last_y += 1
+                return None
+            else:
+                last_y = self.last_y
+                self.last_y += 1
+                return last_y, self.x
+        elif self.direction == "up":
+            if self.last_y > self.height or self.last_y < 0:
+                self.last_y -= 1
+                return None
+            else:
+                last_y = self.last_y
+                self.last_y -= 1
+                return last_y, self.x
+
+    def okay_to_delete(self) -> bool:
+        if self.direction == "down":
+            if self.last_y > self.height:
+                return True
+            else:
+                return False
+        elif self.direction == "up":
+            if self.last_y < 0:
+                return True
+            else:
+                return False
 
     def async_scroll_turn(self) -> bool:
-        """ Checks to see if lines turn when async like scrolling is on"""
-        if self.async_scroll_position == self.async_scroll_rate:
-            self.async_scroll_position = 0
+        if self.async_scroll_count == self.async_scroll_rate:
+            self.async_scroll_count = 0
             return True
         else:
-            self.async_scroll_position += 1
+            self.async_scroll_count += 1
             return False
 
-    def add_char(self) -> None:
-        """ Adds a random char to the line """
-        if self.reverse:
-            if self.y > 0:
-                self.data.append((self.y, choice(SingleLine.char_list)))
-            else:
-                return None
-        else:
-            if 0 <= self.y <= self.height:
-                self.data.append((self.y, choice(SingleLine.char_list)))
-            else:
-                return None
 
-    def get_new(self) -> Union[Tuple[int, int, str], None]:
-        """ Gets the last char that was added"""
-        if self.reverse:
-            if self.y > 0 and len(self.data) > 0:
-                new = (self.data[-1][0], self.x, self.data[-1][1])
-                return new
-            else:
-                return None
-        else:
-            if 0 <= self.y <= self.height and len(self.data) > 0:
-                new = (self.data[-1][0], self.x, self.data[-1][1])
-                return new
-            else:
-                return None
+def build_character_set(sets: list) -> list:
+    # char = CHAR_LIST, ext = EXT_CHAR_LIST, all = all, test = "T" & chr(35)
+    # zero = 0 and 1,
+    char_set = []
+    if sets[0] == "all":
+        char_set.extend(CHAR_LIST)
+        char_set.extend(EXT_CHAR_LIST)
+        return char_set
+    elif sets[0] == "zero":
+        char_set.extend(["0", "1"])
+        return char_set
+    elif sets[0] == "test":
+        char_set.extend(["T", chr(35)])
+        return char_set
 
-    def get_lead(self) -> Union[Tuple[int, int, str], None]:
-        """ Gets the lead char """
-        if self.reverse:
-            if self.lead_y > 0:
-                return self.lead_y, self.x, choice(SingleLine.char_list)
-            else:
-                return None
-        else:
-            if self.lead_y < self.height:
-                return self.lead_y, self.x, choice(SingleLine.char_list)
-            else:
-                return None
-
-    def get_remove(self) -> Union[Tuple[int, int, str], None]:
-        """ Remove char from list and returns the location to erase """
-        data_len = len(self.data)
-        if self.reverse:
-            if data_len >= self.length or self.y <= 0:
-                rm = (self.data[0][0], self.x, " ")  # 1
-                self.data.pop(0)
-                return rm
-            elif self.y <= 0 < data_len:
-                rm = (self.data[0][0], self.x, " ")
-                self.data.pop(0)
-                return rm
-            return None
-        else:
-            if data_len >= self.length or self.y >= self.height and data_len >= 0:
-                rm = (self.data[0][0], self.x, " ")
-                self.data.pop(0)
-                return rm
-            elif data_len > 0 and self.data[0][0] >= self.height:
-                rm = (self.data[0][0], self.x, " ")
-                self.data.pop(0)
-                return rm
-            return None
-
-    @classmethod
-    def set_test_mode(cls, test_mode: bool, extended: bool) -> None:
-        if test_mode and extended:
-            cls.char_list = ["T", chr(35)]
-        elif test_mode:
-            cls.char_list = ["T"]
-        elif extended:
-            cls.char_list = [chr(35)]
-        else:
-            cls.char_list = CHAR_LIST
-
-    @classmethod
-    def set_extended_chars(cls, state: str):
-        # off, on, only
-        if state == "off":
-            cls.extended_char = "off"
-            cls.char_list = CHAR_LIST
-        elif state == "on":
-            cls.extended_char = "on"
-            cls.char_list = CHAR_LIST + EXT_CHAR_LIST
-        elif state == "only":
-            cls.extended_char = "only"
-            cls.char_list = EXT_CHAR_LIST
-
-    @classmethod
-    def set_zero_one(cls, mode: bool):
-        if mode:
-            cls.char_list = ["0", "1"]
-        else:
-            cls.char_list = CHAR_LIST
+    for s in sets:
+        if s == "char":
+            char_set.extend(CHAR_LIST)
+        elif s == "ext":
+            char_set.extend(EXT_CHAR_LIST)
+    return char_set
 
 
 def matrix_loop(screen, args: argparse.Namespace) -> None:
@@ -227,15 +194,18 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
     line_list = []
     spacer = 2 if args.double_space else 1
     keys_pressed = 0
+    if args.reverse:
+        direction = "up"
+    else:
+        direction = "down"
     if args.ext:
-        SingleLine.set_extended_chars("on")
-    if args.ext_only:
-        SingleLine.set_extended_chars("only")
-
-    if args.async_scroll:
-        SingleLine.async_scroll = True
-    if args.test_mode or args.test_mode_ext:
-        SingleLine.set_test_mode(args.test_mode, args.test_mode_ext)
+        char_set = build_character_set(["ext", "char"])
+    elif args.ext_only:
+        char_set = build_character_set(["ext"])
+    elif args.test_mode or args.test_mode_ext:
+        char_set = build_character_set(["test"])
+    else:
+        char_set = build_character_set(["char"])
 
     if args.test_mode:
         wake_up_time = 20
@@ -243,7 +213,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
         wake_up_time = randint(2000, 3000)
 
     if args.zero_one:
-        SingleLine.set_zero_one(True)
+        char_set = build_character_set(["zero"])
 
     if args.multiple_mode:
         color_mode = "multiple"
@@ -270,7 +240,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             for _ in range(2):
                 x = choice(x_list)
                 x_list.pop(x_list.index(x))
-                line_list.append(SingleLine(x, size_x, size_y, args.reverse))
+                line_list.append(SingleLine(x, size_y, direction))
 
         resize = curses.is_term_resized(size_y, size_x)
         if resize is True:
@@ -295,13 +265,12 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 count -= 1
 
         for line in line_list:
-            if SingleLine.async_scroll and not line.async_scroll_turn():
+            if args.async_scroll and not line.async_scroll_turn():
                 # Not the line's turn in async scroll mode then continue to the next line.
                 continue
-            line.add_char()
-            remove_line = line.get_remove()
-            if remove_line:
-                screen.addstr(remove_line[0], remove_line[1], remove_line[2])
+            remove_line = line.delete_last()
+            if remove_line is not None:
+                screen.addstr(remove_line[0], remove_line[1], " ")
                 if line.x not in x_list:
                     x_list.append(line.x)
 
@@ -312,23 +281,18 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             else:
                 bold = curses.A_NORMAL
 
-            new_char = line.get_new()
-            if new_char:
-                if color_mode == "random":
-                    color = curses.color_pair(randint(1, 7))
-                else:
-                    color = curses.color_pair(line.line_color_number)
-                screen.addstr(new_char[0], new_char[1], new_char[2], color + bold)
-
+            if color_mode == "random":
+                color = curses.color_pair(randint(1, 7))
+            else:
+                color = curses.color_pair(line.line_color_number)
+            new_char = line.get_next()
+            if new_char is not None:
+                screen.addstr(new_char[0], new_char[1], choice(char_set), color + bold)
             lead_char = line.get_lead()
-            if lead_char:
-                screen.addstr(lead_char[0], lead_char[1], lead_char[2],
+            if lead_char is not None:
+                screen.addstr(lead_char[0], lead_char[1], choice(char_set),
                               curses.color_pair(10) + bold)
-
-            line.increment()
-            if line.reverse and len(line.data) <= 0 and line.y <= 0:
-                remove_list.append(line)
-            elif len(line.data) <= 0 and line.y >= size_y - 2:
+            if line.okay_to_delete():
                 remove_list.append(line)
         screen.refresh()
 
@@ -394,7 +358,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 curses_lead_color(args.lead_color, args.background)
                 screen.bkgd(" ", curses.color_pair(1))
             elif ch == 97:  # a
-                SingleLine.async_scroll = not SingleLine.async_scroll
+                args.async_scroll = not args.async_scroll
             elif ch == 109:  # m
                 if color_mode in ["random", "normal", "cycle"]:
                     color_mode = "multiple"
@@ -425,23 +389,27 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                     spacer = 1
                     x_list = [x for x in range(0, size_x, spacer)]
             elif ch == 101:  # e
-                if SingleLine.extended_char == "off":
-                    SingleLine.set_extended_chars("on")
+                if args.ext or args.ext_only:
+                    args.ext = False
+                    char_set = build_character_set(["char"])
                 else:
-                    SingleLine.set_extended_chars("off")
+                    args.ext = True
+                    char_set = build_character_set(["ext", "char"])
             elif ch == 69:  # E
-                if SingleLine.extended_char == "on":
-                    SingleLine.set_extended_chars("only")
-                elif SingleLine.extended_char == "only":
-                    SingleLine.set_extended_chars("on")
+                if args.ext_only:
+                    args.ext_only = False
+                    char_set = build_character_set(["ext", "char"])
+                else:
+                    args.ext_only = True
+                    char_set = build_character_set(["ext"])
             elif ch == 122 and not args.zero_one:  # z
-                SingleLine.set_zero_one(True)
+                char_set = build_character_set(["zero"])
                 line_list.clear()
                 screen.clear()
                 screen.refresh()
                 args.zero_one = True
             elif ch == 90 and args.zero_one:  # Z
-                SingleLine.set_zero_one(False)
+                char_set = build_character_set(["char"])
                 line_list.clear()
                 screen.clear()
                 screen.refresh()
@@ -450,23 +418,29 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 args.wakeup = not args.wakeup
             elif ch == 118:  # v
                 args.reverse = not args.reverse
+                if direction == "down":
+                    direction = "up"
+                else:
+                    direction = "down"
                 line_list.clear()
                 screen.clear()
                 screen.refresh()
             elif ch in [100, 68]:  # d, D
-                SingleLine.set_zero_one(False)
                 args.zero_one = False
                 args.bold_on = False
                 args.bold_all = False
                 args.background = "black"
                 args.color = "green"
                 args.lead_color = "white"
+                args.ext = False
+                args.ext_only = False
                 setup_curses_colors(args.color, args.background)
                 curses_lead_color(args.lead_color, args.background)
                 color_mode = "normal"
-                SingleLine.async_scroll = False
+                args.async_scroll = False
                 args.delay = 4
-                SingleLine.set_extended_chars("off")
+                char_set = build_character_set(["char"])
+                direction = "down"
                 if spacer == 2:
                     spacer = 1
                     x_list = [x for x in range(0, size_x, spacer)]
