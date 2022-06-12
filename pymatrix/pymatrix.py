@@ -300,9 +300,10 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             if wake_up_time <= 0:
                 wake_up_neo(screen, args.test_mode)
                 wake_up_time = randint(2000, 3000)
-                _ = screen.getch()
+                while screen.getch() != -1:  # clears out the buffer
+                    ...
                 screen.bkgd(" ", curses.color_pair(1))
-                _ = screen.getch()  # clears out any saved key presses
+                continue
             else:
                 wake_up_time -= 1
 
@@ -323,7 +324,8 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 keys_pressed = 3
             elif ch == 101 and keys_pressed == 3:  # e
                 wake_up_neo(screen, args.test_mode)
-                _ = screen.getch()  # clears out any saved key presses
+                while screen.getch() != -1:  # clears out the buffer
+                    ...
                 keys_pressed = 0
                 screen.bkgd(" ", curses.color_pair(1))
                 continue
