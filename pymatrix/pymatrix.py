@@ -40,9 +40,6 @@ EXT_CHAR_LIST = [chr(x) for x in EXT_INTS]
 DELAY_SPEED = {0: 0.005, 1: 0.01, 2: 0.025, 3: 0.04, 4: 0.055, 5: 0.07,
                6: 0.085, 7: 0.1, 8: 0.115, 9: 0.13}
 
-CURSES_CH_CODES_DELAY = {
-    48: 0, 49: 1, 50: 2, 51: 3, 52: 4, 53: 5, 54: 6, 55: 7, 56: 8, 57: 9
-}
 CURSES_CH_CODES_CYCLE_DELAY = {41: 1, 33: 2, 64: 3, 35: 4, 36: 5, 37: 6,
                                94: 7, 38: 8, 42: 9, 40: 10}
 
@@ -204,6 +201,8 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
         char_set = build_character_set(["ext"])
     elif args.test_mode or args.test_mode_ext:
         char_set = build_character_set(["test"])
+    elif args.zero_one:
+        char_set = build_character_set(["zero"])
     else:
         char_set = build_character_set(["char"])
 
@@ -211,9 +210,6 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
         wake_up_time = 20
     else:
         wake_up_time = randint(2000, 3000)
-
-    if args.zero_one:
-        char_set = build_character_set(["zero"])
 
     if args.multiple_mode:
         color_mode = "multiple"
@@ -389,6 +385,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                     spacer = 1
                     x_list = [x for x in range(0, size_x, spacer)]
             elif ch == 101:  # e
+                args.zero_one = False
                 if args.ext or args.ext_only:
                     args.ext = False
                     char_set = build_character_set(["char"])
@@ -396,6 +393,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                     args.ext = True
                     char_set = build_character_set(["ext", "char"])
             elif ch == 69:  # E
+                args.zero_one = False
                 if args.ext_only:
                     args.ext_only = False
                     char_set = build_character_set(["ext", "char"])
@@ -452,8 +450,8 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             elif color_mode == "cycle" and ch in CURSES_CH_CODES_CYCLE_DELAY.keys():
                 cycle_delay = 100 * CURSES_CH_CODES_CYCLE_DELAY[ch]
                 count = cycle_delay
-            elif ch in CURSES_CH_CODES_DELAY.keys():
-                args.delay = CURSES_CH_CODES_DELAY[ch]
+            elif 48 <= ch <= 57:  # number keys 0 to 9
+                args.delay = int(chr(ch))
             elif ch == 102:  # f
                 # Freeze the Matrix
                 quit_matrix = False
