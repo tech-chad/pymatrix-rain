@@ -320,22 +320,31 @@ def test_pymatrix_zero_one_command_line():
 
 def test_pymatrix_zero_one_running_command():
     with Runner(*pymatrix_run("--test_mode", "-l"), width=100, height=50) as h:
+        h.default_timeout = 4
         h.await_text("T")
+        sleep(0.5)
         h.write("z")
         h.press("Enter")
-        h.await_text("0")
-        h.await_text("1")
-        sc = h.screenshot()
-        assert "T" not in sc
-        assert "5" not in sc
-        h.default_timeout = 4
-        h.write("Z")
-        h.press("Enter")
-        sleep(3)
-        h.await_text("T")
+        sleep(0.5)
         sc = h.screenshot()
         assert "T" in sc
-        assert "5" in sc
+        assert "0" in sc
+        assert "1" in sc
+        sleep(3)
+        sc = h.screenshot()
+        assert "T" not in sc
+        sleep(0.5)
+        h.write("Z")
+        h.press("Enter")
+        sleep(0.5)
+        sc = h.screenshot()
+        assert "T" in sc
+        assert "0" in sc
+        assert "1" in sc
+        sleep(3)
+        sc = h.screenshot()
+        h.default_timeout = 6
+        assert "T" in sc
 
 
 def test_pymatrix_no_zero_one_running():

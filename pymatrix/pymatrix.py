@@ -404,15 +404,12 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                     char_set = build_character_set(["ext"])
             elif ch == 122 and not args.zero_one:  # z
                 char_set = build_character_set(["zero"])
-                line_list.clear()
-                screen.clear()
-                screen.refresh()
                 args.zero_one = True
             elif ch == 90 and args.zero_one:  # Z
-                char_set = build_character_set(["char"])
-                line_list.clear()
-                screen.clear()
-                screen.refresh()
+                if args.test_mode:
+                    char_set = build_character_set(["test"])
+                else:
+                    char_set = build_character_set(["char"])
                 args.zero_one = False
             elif ch == 23:  # ctrl-w
                 args.wakeup = not args.wakeup
