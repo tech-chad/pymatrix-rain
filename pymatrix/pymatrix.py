@@ -29,13 +29,14 @@ CHAR_LIST = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n
              "-", "+", "=", "[", "]", "{", "}", "|", ";", ":", "<", ">", ",", ".",
              "?", "~", "`", "@", "*", "_", "'", "\\", "/", '"']
 
-EXT_INTS = [199, 200, 204, 205, 208, 209, 210, 215, 216, 217, 218, 221, 222, 223, 224,
-            163, 164, 165, 167, 170, 182, 186, 187, 191, 196, 197, 233, 234, 237, 239,
-            229, 230, 231, 232, 240, 241, 242, 246, 248, 249, 253, 254, 257, 263, 265,
-            279, 283, 285, 291, 295, 299, 305, 311, 317, 321, 322, 324, 328, 333, 338,
-            339, 341, 343, 347, 349, 353, 357, 363, 371, 376, 378, 380, 381, 382, 537,
-            539, 35]
-EXT_CHAR_LIST = [chr(x) for x in EXT_INTS]
+EXT_CHAR_LIST = ["Ç", "È", "Ì", "Í", "Ð", "Ñ", "Ò", "×", "Ø", "Ù", "Ú", "Ý",
+                 "Þ", "ß", "à", "£", "¤", "¥", "§", "ª", "¶", "º", "»", "¿",
+                 "Ä", "Å", "é", "ê", "í", "ï", "å", "æ", "ç", "è", "ð", "ñ",
+                 "ò", "ö", "ø", "ù", "ý", "þ", "ā", "ć", "ĉ", "ė", "ě", "ĝ",
+                 "ģ", "ħ", "ī", "ı", "ķ", "Ľ", "Ł", "ł", "ń", "ň", "ō", "Œ",
+                 "œ", "ŕ", "ŗ", "ś", "ŝ", "š", "ť", "ū", "ų", "Ÿ", "ź", "ż",
+                 "Ž", "ž", "ș", "ț", "ë", "Ĉ", "Ď", "ď", "Ġ", "Ř", "°", "«",
+                 "±", "Δ", "Ξ", "Λ", ]
 
 DELAY_SPEED = {0: 0.005, 1: 0.01, 2: 0.025, 3: 0.04, 4: 0.055, 5: 0.07,
                6: 0.085, 7: 0.1, 8: 0.115, 9: 0.13}
@@ -404,15 +405,12 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                     char_set = build_character_set(["ext"])
             elif ch == 122 and not args.zero_one:  # z
                 char_set = build_character_set(["zero"])
-                line_list.clear()
-                screen.clear()
-                screen.refresh()
                 args.zero_one = True
             elif ch == 90 and args.zero_one:  # Z
-                char_set = build_character_set(["char"])
-                line_list.clear()
-                screen.clear()
-                screen.refresh()
+                if args.test_mode:
+                    char_set = build_character_set(["test"])
+                else:
+                    char_set = build_character_set(["char"])
                 args.zero_one = False
             elif ch == 23:  # ctrl-w
                 args.wakeup = not args.wakeup
