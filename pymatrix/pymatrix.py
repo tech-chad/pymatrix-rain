@@ -272,7 +272,8 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 continue
             remove_line = line.delete_last()
             if remove_line is not None:
-                screen.addstr(remove_line[0], remove_line[1], " ")
+                if args.do_not_clear is False:
+                    screen.addstr(remove_line[0], remove_line[1], " ")
                 if line.x not in x_list:
                     x_list.append(line.x)
 
@@ -444,6 +445,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 args.delay = 4
                 char_set = build_character_set(["char"])
                 direction = "down"
+                args.do_not_clear = False
                 if spacer == 2:
                     spacer = 1
                     x_list = [x for x in range(0, size_x, spacer)]
@@ -457,6 +459,8 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 count = cycle_delay
             elif 48 <= ch <= 57:  # number keys 0 to 9
                 args.delay = int(chr(ch))
+            elif ch == 87:  # W
+                args.do_not_clear = not args.do_not_clear
             elif ch == 102:  # f
                 # Freeze the Matrix
                 quit_matrix = False
@@ -593,6 +597,7 @@ def display_commands() -> None:
     print("Z      1 and 0 Mode Off")
     print("f      Freeze the matrix (q will still quit")
     print("v      Toggle matrix scrolling up")
+    print("W      Toggle do not clear screen")
     print("r,t,y,u,i,o,p,[   Set color")
     print("R,T,Y,U,I,O,P,{   Set lead character color")
     print("ctrl + r,t,y,u,i,o,p,[  Set background color")
@@ -642,6 +647,8 @@ def argument_parsing(argv: Optional[Sequence[str]] = None) -> argparse.Namespace
                         help="Override terminal window colors by using color"
                              " numbers between 16 and 255. This requires 256"
                              " color support in the terminal to work.")
+    parser.add_argument("-W", "--do_not_clear", action="store_true",
+                        help="do not clear the screen")
     parser.add_argument("--disable_keys", action="store_true",
                         help="Disable keys except for Q to quit. Screensaver mode will"
                              "not be affected")

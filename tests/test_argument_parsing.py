@@ -210,6 +210,14 @@ def test_argument_parsing_over_ride(test_value, expected_result):
     assert result.over_ride == expected_result
 
 
+@pytest.mark.parametrize("test_value, expected_result", [
+    ([], False), (["-W"], True), (["--do_not_clear"], True)
+])
+def test_argument_parsing_do_not_clear(test_value, expected_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.do_not_clear == expected_result
+
+
 # testing helper functions
 @pytest.mark.parametrize("test_values, expected_results", [
     ("0", 0), ("1", 1), ("2", 2), ("3", 3), ("4", 4),

@@ -30,6 +30,7 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>Z</kbd>** = *Zero and One Mode Off*
 - **<kbd>f</kbd>** = *Freeze and unfreeze the matrix. Can still use **<kbd>Q</kbd>** to quit.*
 - **<kbd>v</kbd>** = *Toggle the matrix to scroll up*
+- **<kbd>W</kbd>** = *Toggle do not clear screen*
 - **<kbd>shift 0-9</kbd>** = *cycle color delay*
 
 ##### rain colors
