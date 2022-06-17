@@ -3,7 +3,6 @@
 import argparse
 import curses
 import datetime
-import os
 import sys
 
 from random import choice
