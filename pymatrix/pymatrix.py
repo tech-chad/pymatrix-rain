@@ -460,6 +460,12 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 args.delay = int(chr(ch))
             elif ch == 87:  # W
                 args.do_not_clear = not args.do_not_clear
+            elif ch == 119:  # w
+                screen.clear()
+                screen.refresh()
+                line_list.clear()
+                sleep(2)
+                continue
             elif ch == 102:  # f
                 # Freeze the Matrix
                 quit_matrix = False
@@ -597,6 +603,7 @@ def display_commands() -> None:
     print("f      Freeze the matrix (q will still quit")
     print("v      Toggle matrix scrolling up")
     print("W      Toggle do not clear screen")
+    print("w      Clear the screen, wait 2 seconds and restart")
     print("r,t,y,u,i,o,p,[   Set color")
     print("R,T,Y,U,I,O,P,{   Set lead character color")
     print("ctrl + r,t,y,u,i,o,p,[  Set background color")

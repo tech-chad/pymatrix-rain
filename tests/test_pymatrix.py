@@ -449,6 +449,18 @@ def test_pymatrix_reverse_key():
         h.await_text("T")
 
 
+def test_pymatrix_clear_screen():
+    with Runner(*pymatrix_run("--test_mode"), width=80, height=20) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        h.press("w")
+        h.press("Enter")
+        sleep(0.5)
+        sc = h.screenshot()
+        assert "T" not in sc
+        h.await_text("T")
+
+
 def test_build_character_set_all():
     test_set = pymatrix.build_character_set(["all"])
     assert "A" in test_set
