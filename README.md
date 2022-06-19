@@ -32,6 +32,7 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>v</kbd>** = *Toggle the matrix to scroll up*
 - **<kbd>W</kbd>** = *Toggle do not clear screen*
 - **<kbd>w</kbd>** = *Clear the screen, wait 2 seconds and restart*
+- **<kbd>j</kbd>** = *Toggle italic text*
 - **<kbd>shift 0-9</kbd>** = *cycle color delay*
 
 ##### rain colors

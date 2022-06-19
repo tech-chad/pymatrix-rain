@@ -226,6 +226,14 @@ def test_argument_parsing_color_number(test_value, expected_result):
     assert result.color_number == expected_result
 
 
+@pytest.mark.parametrize("test_value, expected_result", [
+    ([], False), (["-j"], True), (["--italic"], True)
+])
+def test_argument_parsing_italic(test_value, expected_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.italic == expected_result
+
+
 # testing helper functions
 @pytest.mark.parametrize("test_values, expected_results", [
     ("0", 0), ("1", 1), ("2", 2), ("3", 3), ("4", 4),

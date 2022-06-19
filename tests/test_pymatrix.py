@@ -516,6 +516,18 @@ def test_pymatrix_invalid_color_number(test_value):
         h.await_text(f"{test_value} is an invalid positive int between 1 and 255")
 
 
+def test_pymatrix_command_line_italic():
+    cmd = f"TERM=xterm-256color python3 pymatrix/pymatrix.py --test_mode -j"
+    with Runner("bash") as h:
+        h.await_text("$")
+        h.write("clear")
+        h.press("Enter")
+        h.write(cmd)
+        h.press("Enter")
+        h.await_text("T")
+        h.await_text(chr(35))
+
+
 def test_build_character_set_all():
     test_set = pymatrix.build_character_set(["all"])
     assert "A" in test_set

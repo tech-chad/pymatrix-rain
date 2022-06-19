@@ -287,17 +287,23 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             else:
                 bold = curses.A_NORMAL
 
+            if args.italic:
+                italic = curses.A_ITALIC
+            else:
+                italic = curses.A_NORMAL
+
             if color_mode == "random":
                 color = curses.color_pair(randint(1, 7))
             else:
                 color = curses.color_pair(line.line_color_number)
             new_char = line.get_next()
             if new_char is not None:
-                screen.addstr(new_char[0], new_char[1], choice(char_set), color + bold)
+                screen.addstr(new_char[0], new_char[1], choice(char_set),
+                              color + bold + italic)
             lead_char = line.get_lead()
             if lead_char is not None:
                 screen.addstr(lead_char[0], lead_char[1], choice(char_set),
-                              curses.color_pair(10) + bold)
+                              curses.color_pair(10) + bold + italic)
             if line.okay_to_delete():
                 remove_list.append(line)
         screen.refresh()
@@ -449,6 +455,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 char_set = build_character_set(["char"])
                 direction = "down"
                 args.do_not_clear = False
+                args.italic = False
                 if spacer == 2:
                     spacer = 1
                     x_list = [x for x in range(0, size_x, spacer)]
@@ -470,6 +477,8 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 line_list.clear()
                 sleep(2)
                 continue
+            elif ch == 106:  # j
+                args.italic = not args.italic
             elif ch == 102:  # f
                 # Freeze the Matrix
                 quit_matrix = False
@@ -636,6 +645,7 @@ def display_commands() -> None:
     print("v      Toggle matrix scrolling up")
     print("W      Toggle do not clear screen")
     print("w      Clear the screen, wait 2 seconds and restart")
+    print("j      Toggle italic text")
     print("r,t,y,u,i,o,p,[   Set color")
     print("R,T,Y,U,I,O,P,{   Set lead character color")
     print("ctrl + r,t,y,u,i,o,p,[  Set background color")
@@ -681,6 +691,8 @@ def argument_parsing(argv: Optional[Sequence[str]] = None) -> argparse.Namespace
                         help="set background color. Default is black.")
     parser.add_argument("-v", "--reverse", action="store_true",
                         help="Reverse the matrix. The matrix scrolls up (vertical)")
+    parser.add_argument("-j", "--italic", action="store_true",
+                        help="Italic characters")
     parser.add_argument("-O", dest="over_ride", action="store_true",
                         help="Override terminal window colors by using color"
                              " numbers between 16 and 255. This requires 256"
