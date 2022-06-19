@@ -202,6 +202,38 @@ def test_argument_parsing_reverse(test_value, expected_result):
     assert result.reverse == expected_result
 
 
+@pytest.mark.parametrize("test_value, expected_result", [
+    ([], False), (["-O"], True)
+])
+def test_argument_parsing_over_ride(test_value, expected_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.over_ride == expected_result
+
+
+@pytest.mark.parametrize("test_value, expected_result", [
+    ([], False), (["-W"], True), (["--do_not_clear"], True)
+])
+def test_argument_parsing_do_not_clear(test_value, expected_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.do_not_clear == expected_result
+
+
+@pytest.mark.parametrize("test_value, expected_result", [
+    ("1", 1), ("40", 40), ("100", 100), ("156", 156), ("255", 255),
+])
+def test_argument_parsing_color_number(test_value, expected_result):
+    result = pymatrix.argument_parsing(["--color_number", test_value])
+    assert result.color_number == expected_result
+
+
+@pytest.mark.parametrize("test_value, expected_result", [
+    ([], False), (["-j"], True), (["--italic"], True)
+])
+def test_argument_parsing_italic(test_value, expected_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.italic == expected_result
+
+
 # testing helper functions
 @pytest.mark.parametrize("test_values, expected_results", [
     ("0", 0), ("1", 1), ("2", 2), ("3", 3), ("4", 4),
@@ -254,3 +286,21 @@ def test_positive_int_normal(test_values, expected_results):
 def test_positive_int_error(test_values):
     with pytest.raises(pymatrix.argparse.ArgumentTypeError):
         pymatrix.positive_int(test_values)
+
+
+@pytest.mark.parametrize("test_value, expected_result", [
+    ("1", 1), ("30", 30), ("100", 100), ("167", 167), ("200", 200),
+    ("250", 250), ("255", 255)
+])
+def test_int_between_1_and_255(test_value, expected_result):
+    result = pymatrix.int_between_1_and_255(test_value)
+    assert result == expected_result
+
+
+@pytest.mark.parametrize("test_values", [
+    "0", "256", "34.4", "Blue", "test", "-4", "1001", "", " ", "c40", "30c",
+    "*", "-C", "&",
+])
+def test_int_between_1_and_255_error(test_values):
+    with pytest.raises(pymatrix.argparse.ArgumentTypeError):
+        pymatrix.int_between_1_and_255(test_values)
