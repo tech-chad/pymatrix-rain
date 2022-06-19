@@ -187,7 +187,11 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
     """ Main loop. """
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
-    setup_curses_colors(args.color, args.background, args.over_ride)
+    if args.color_number is not None:
+        setup_curses_color_number(args.color_number, args.background,
+                                  args.over_ride)
+    else:
+        setup_curses_colors(args.color, args.background, args.over_ride)
     curses_lead_color(args.lead_color, args.background, args.over_ride)
     screen.bkgd(" ", curses.color_pair(1))
     count = cycle = 0  # used for cycle through colors mode
@@ -492,6 +496,20 @@ def curses_lead_color(color: str, background_color: str, over_ride: bool) -> Non
         curses.init_pair(10, CURSES_COLOR[color], CURSES_COLOR[background_color])
 
 
+def setup_curses_color_number(color_num: int,
+                              background_color: str,
+                              override: bool) -> None:
+    if override:
+        bg = CURSES_OVER_RIDE_COLORS[background_color]
+    else:
+        bg = CURSES_COLOR[background_color]
+
+    color_list = [color_num for _ in range(7)]
+    for x, c in enumerate(color_list):
+        curses.init_pair(x + 1, c, bg)
+    curses.init_pair(21, curses.COLOR_GREEN, curses.COLOR_BLACK)
+
+
 def setup_curses_colors(color: str, background_color: str, over_ride: bool) -> None:
     """ Init colors pairs in the curses. """
     if over_ride:
@@ -584,6 +602,20 @@ def positive_int(value: str) -> int:
     return int_value
 
 
+def int_between_1_and_255(value: str) -> int:
+    """
+    Used by argparse. Checks to see if the value is between 1 and 255
+    """
+    msg = f"{value} is an invalid positive int between 1 and 255"
+    try:
+        int_value = int(value)
+        if int_value < 1 or int_value > 255:
+            raise argparse.ArgumentTypeError(msg)
+        return int_value
+    except ValueError:
+        raise argparse.ArgumentTypeError(msg)
+
+
 def display_commands() -> None:
     print("Commands available during run")
     print("0 - 9  Delay time (0-Fast, 4-Default, 9-Slow)")
@@ -655,6 +687,12 @@ def argument_parsing(argv: Optional[Sequence[str]] = None) -> argparse.Namespace
                              " color support in the terminal to work.")
     parser.add_argument("-W", "--do_not_clear", action="store_true",
                         help="do not clear the screen")
+    parser.add_argument("--color_number", type=int_between_1_and_255, default=None,
+                        metavar="number",
+                        help="Enter a number between 1 and 255 to select"
+                             " character color. Requires 256 color support in "
+                             "the terminal to work. Changing colors or background"
+                             " color will remove the color entered.")
     parser.add_argument("--disable_keys", action="store_true",
                         help="Disable keys except for Q to quit. Screensaver mode will"
                              "not be affected")

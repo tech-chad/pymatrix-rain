@@ -187,6 +187,34 @@ def test_curses_lead_color_override():
         assert mock_pair.call_count == 1
 
 
+def test_pymatrix_setup_color_number():
+    with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
+        pymatrix.setup_curses_color_number(50, "black", False)
+        assert mock_pair.call_count == 8
+
+
+def test_pymatrix_setup_color_number_override():
+    with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
+        pymatrix.setup_curses_color_number(50, "black", True)
+        assert mock_pair.call_count == 8
+
+
+def test_pymatrix_setup_color_number_color():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.setup_curses_color_number(60, "black", False)
+    assert pymatrix.curses.pair_content(1) == (60, 0)
+    assert pymatrix.curses.pair_content(7) == (60, 0)
+
+
+def test_pymatrix_setup_color_number_color_override():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.setup_curses_color_number(60, "black", True)
+    assert pymatrix.curses.pair_content(1) == (60, 16)
+    assert pymatrix.curses.pair_content(7) == (60, 16)
+
+
 def test_pymatrix_display_commands(capsys):
     pymatrix.display_commands()
     captured_output = capsys.readouterr().out
@@ -459,6 +487,33 @@ def test_pymatrix_clear_screen():
         sc = h.screenshot()
         assert "T" not in sc
         h.await_text("T")
+
+
+@pytest.mark.parametrize("test_value", ["1", "100", "40", "255", "128"])
+def test_pymatrix_valid_color_number(test_value):
+    cmd = f"TERM=xterm-256color python3 pymatrix/pymatrix.py --test_mode" \
+          f" --color_number {test_value}"
+    with Runner("bash") as h:
+        h.await_text("$")
+        h.write("clear")
+        h.press("Enter")
+        h.write(cmd)
+        h.press("Enter")
+        h.await_text("T")
+        h.await_text(chr(35))
+
+
+@pytest.mark.parametrize("test_value", ["0", "A", "blue", "256"])
+def test_pymatrix_invalid_color_number(test_value):
+    cmd = f"TERM=xterm-256color python3 pymatrix/pymatrix.py --test_mode" \
+          f" --color_number {test_value}"
+    with Runner("bash") as h:
+        h.await_text("$")
+        h.write("clear")
+        h.press("Enter")
+        h.write(cmd)
+        h.press("Enter")
+        h.await_text(f"{test_value} is an invalid positive int between 1 and 255")
 
 
 def test_build_character_set_all():
