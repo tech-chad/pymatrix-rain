@@ -142,7 +142,7 @@ def test_pymatrix_list_colors():
 
 
 def test_pymatrix_list_commands():
-    with Runner(*pymatrix_run("--list_commands")) as h:
+    with Runner(*pymatrix_run("--list_commands"), width=80, height=80) as h:
         h.await_text("Commands available during run")
 
 
