@@ -310,7 +310,6 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
 
         for rem in remove_list:
             line_list.pop(line_list.index(rem))
-            x_list.append(rem.x)
 
         if args.wakeup:
             if wake_up_time <= 0:
