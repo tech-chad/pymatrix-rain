@@ -166,7 +166,7 @@ def test_wakeup_help_suppressed():
 def test_pymatrix_setup_curses_colors():
     with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_colors("random", "black", False)
-        assert mock_pair.call_count == 9
+        assert mock_pair.call_count == 8
 
 
 def test_curses_lead_color():
@@ -178,7 +178,7 @@ def test_curses_lead_color():
 def test_pymatrix_setup_curses_colors_override():
     with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_colors("random", "black", True)
-        assert mock_pair.call_count == 9
+        assert mock_pair.call_count == 8
 
 
 def test_curses_lead_color_override():
@@ -190,13 +190,13 @@ def test_curses_lead_color_override():
 def test_pymatrix_setup_color_number():
     with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_color_number(50, "black", False)
-        assert mock_pair.call_count == 8
+        assert mock_pair.call_count == 7
 
 
 def test_pymatrix_setup_color_number_override():
     with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_color_number(50, "black", True)
-        assert mock_pair.call_count == 8
+        assert mock_pair.call_count == 7
 
 
 def test_pymatrix_setup_color_number_color():
@@ -231,46 +231,26 @@ def test_pymatrix_setup_curses_colors_call_background():
     assert pymatrix.curses.pair_content(7) == (2, 4)
 
 
-def test_pymatrix_setup_curses_colors_wake_up():
+def test_pymatrix_setup_curses_colors_no_wake_up_set():
     pymatrix.curses.initscr()
     pymatrix.curses.start_color()
     pymatrix.setup_curses_colors("green", "black", False)
-    assert pymatrix.curses.pair_content(21) == (2, 0)
+    assert pymatrix.curses.pair_content(21) == (0, 0)
+    assert pymatrix.curses.pair_content(pymatrix.WAKE_UP_PAIR) == (0, 0)
 
 
-def test_pymatrix_setup_curses_colors_wake_up_other_colors():
+def test_pymatrix_setup_curses_wake_up_colors():
     pymatrix.curses.initscr()
     pymatrix.curses.start_color()
-    pymatrix.setup_curses_colors("blue", "white", False)
-    assert pymatrix.curses.pair_content(21) == (2, 0)
+    pymatrix.setup_curses_wake_up_colors(False)
+    assert pymatrix.curses.pair_content(pymatrix.WAKE_UP_PAIR) == (2, 0)
 
 
-def test_pymatrix_setup_curses_colors_wake_up_override():
+def test_pymatrix_setup_curses_wake_up_colors_override():
     pymatrix.curses.initscr()
     pymatrix.curses.start_color()
-    pymatrix.setup_curses_colors("green", "black", True)
-    assert pymatrix.curses.pair_content(21) == (40, 16)
-
-
-def test_pymatrix_setup_curses_colors_wake_up_other_colors_override():
-    pymatrix.curses.initscr()
-    pymatrix.curses.start_color()
-    pymatrix.setup_curses_colors("blue", "white", True)
-    assert pymatrix.curses.pair_content(21) == (40, 16)
-
-
-def test_pymatrix_setup_curses_color_number_wake_up():
-    pymatrix.curses.initscr()
-    pymatrix.curses.start_color()
-    pymatrix.setup_curses_color_number(176, "black", False)
-    assert pymatrix.curses.pair_content(21) == (2, 0)
-
-
-def test_pymatrix_setup_curses_color_number_wake_up_background():
-    pymatrix.curses.initscr()
-    pymatrix.curses.start_color()
-    pymatrix.setup_curses_color_number(188, "yellow", False)
-    assert pymatrix.curses.pair_content(21) == (2, 0)
+    pymatrix.setup_curses_wake_up_colors(True)
+    assert pymatrix.curses.pair_content(pymatrix.WAKE_UP_PAIR) == (40, 16)
 
 
 def test_pymatrix_setup_curses_colors_random():
