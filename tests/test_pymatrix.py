@@ -166,7 +166,7 @@ def test_wakeup_help_suppressed():
 def test_pymatrix_setup_curses_colors():
     with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_colors("random", "black", False)
-        assert mock_pair.call_count == 9
+        assert mock_pair.call_count == 8
 
 
 def test_curses_lead_color():
@@ -178,7 +178,7 @@ def test_curses_lead_color():
 def test_pymatrix_setup_curses_colors_override():
     with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_colors("random", "black", True)
-        assert mock_pair.call_count == 9
+        assert mock_pair.call_count == 8
 
 
 def test_curses_lead_color_override():
@@ -190,13 +190,13 @@ def test_curses_lead_color_override():
 def test_pymatrix_setup_color_number():
     with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_color_number(50, "black", False)
-        assert mock_pair.call_count == 8
+        assert mock_pair.call_count == 7
 
 
 def test_pymatrix_setup_color_number_override():
     with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_color_number(50, "black", True)
-        assert mock_pair.call_count == 8
+        assert mock_pair.call_count == 7
 
 
 def test_pymatrix_setup_color_number_color():
@@ -213,6 +213,140 @@ def test_pymatrix_setup_color_number_color_override():
     pymatrix.setup_curses_color_number(60, "black", True)
     assert pymatrix.curses.pair_content(1) == (60, 16)
     assert pymatrix.curses.pair_content(7) == (60, 16)
+
+
+def test_pymatrix_setup_curses_colors_call():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.setup_curses_colors("green", "black", False)
+    assert pymatrix.curses.pair_content(1) == (2, 0)
+    assert pymatrix.curses.pair_content(7) == (2, 0)
+
+
+def test_pymatrix_setup_curses_colors_call_background():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.setup_curses_colors("green", "blue", False)
+    assert pymatrix.curses.pair_content(1) == (2, 4)
+    assert pymatrix.curses.pair_content(7) == (2, 4)
+
+
+def test_pymatrix_setup_curses_colors_no_wake_up_set():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.setup_curses_colors("green", "black", False)
+    assert pymatrix.curses.pair_content(21) == (0, 0)
+    assert pymatrix.curses.pair_content(pymatrix.WAKE_UP_PAIR) == (0, 0)
+
+
+def test_pymatrix_setup_curses_wake_up_colors():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.setup_curses_wake_up_colors(False)
+    assert pymatrix.curses.pair_content(pymatrix.WAKE_UP_PAIR) == (2, 0)
+
+
+def test_pymatrix_setup_curses_wake_up_colors_override():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.setup_curses_wake_up_colors(True)
+    assert pymatrix.curses.pair_content(pymatrix.WAKE_UP_PAIR) == (40, 16)
+
+
+def test_pymatrix_setup_curses_colors_random():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.setup_curses_colors("random", "black", False)
+    assert pymatrix.curses.pair_content(1) == (1, 0)
+    assert pymatrix.curses.pair_content(2) == (2, 0)
+    assert pymatrix.curses.pair_content(7) == (7, 0)
+    assert pymatrix.curses.pair_content(8) == (0, 0)
+
+
+def test_pymatrix_setup_curses_colors_random_background():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.setup_curses_colors("random", "cyan", False)
+    assert pymatrix.curses.pair_content(1) == (1, 6)
+    assert pymatrix.curses.pair_content(2) == (2, 6)
+    assert pymatrix.curses.pair_content(7) == (7, 6)
+    assert pymatrix.curses.pair_content(8) == (0, 6)
+
+
+def test_pymatrix_setup_curses_colors_random_override():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.setup_curses_colors("random", "black", True)
+    assert pymatrix.curses.pair_content(1) == (160, 16)
+    assert pymatrix.curses.pair_content(2) == (40, 16)
+    assert pymatrix.curses.pair_content(7) == (255, 16)
+    assert pymatrix.curses.pair_content(8) == (16, 16)
+
+
+def test_pymatrix_setup_curses_colors_random_background_override():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.setup_curses_colors("random", "cyan", True)
+    assert pymatrix.curses.pair_content(1) == (160, 44)
+    assert pymatrix.curses.pair_content(2) == (40, 44)
+    assert pymatrix.curses.pair_content(7) == (255, 44)
+    assert pymatrix.curses.pair_content(8) == (16, 44)
+
+
+def test_pymatrix_curses_lead_color():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.curses_lead_color("white", "black", False)
+    assert pymatrix.curses.pair_content(10) == (7, 0)
+
+
+def test_pymatrix_curses_lead_color_blue():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.curses_lead_color("blue", "black", False)
+    assert pymatrix.curses.pair_content(10) == (4, 0)
+
+
+def test_pymatrix_curses_lead_color_background():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.curses_lead_color("white", "cyan", False)
+    assert pymatrix.curses.pair_content(10) == (7, 6)
+
+
+def test_pymatrix_curses_lead_color_blue_background():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.curses_lead_color("blue", "white", False)
+    assert pymatrix.curses.pair_content(10) == (4, 7)
+
+
+def test_pymatrix_curses_lead_color_override():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.curses_lead_color("white", "black", True)
+    assert pymatrix.curses.pair_content(10) == (255, 16)
+
+
+def test_pymatrix_curses_lead_color_blue_override():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.curses_lead_color("blue", "black", True)
+    assert pymatrix.curses.pair_content(10) == (21, 16)
+
+
+def test_pymatrix_curses_lead_color_background_override():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.curses_lead_color("white", "cyan", True)
+    assert pymatrix.curses.pair_content(10) == (255, 44)
+
+
+def test_pymatrix_curses_lead_color_blue_background_override():
+    pymatrix.curses.initscr()
+    pymatrix.curses.start_color()
+    pymatrix.curses_lead_color("blue", "white", True)
+    assert pymatrix.curses.pair_content(10) == (21, 255)
 
 
 def test_pymatrix_display_commands(capsys):
@@ -349,8 +483,17 @@ def test_pymatrix_double_space(width):
         assert "Traceback" not in sc
 
 
-def test_pymatrix_zero_one_command_line():
+def test_pymatrix_zero_one_command_line_double_space():
     with Runner(*pymatrix_run("-z", "-l"), width=75, height=50) as h:
+        h.await_text("0")
+        h.await_text("1")
+        sc = h.screenshot()
+        assert "T" not in sc
+        assert "5" not in sc
+
+
+def test_pymatrix_zero_one_command_line():
+    with Runner(*pymatrix_run("-z"), width=75, height=50) as h:
         h.await_text("0")
         h.await_text("1")
         sc = h.screenshot()
@@ -423,6 +566,24 @@ def test_pymatrix_disable_keys_and_screen_saver():
     with Runner(*pymatrix_run("--test_mode", "-s", "--disable_keys")) as h:
         h.await_text("T")
         h.write("d")
+        h.await_exit()
+
+
+def test_pymatrix_disable_keys_check_running_keys():
+    # not the best test
+    with Runner(*pymatrix_run("--test_mode", "--disable_keys")) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        h.await_text(chr(35))
+        for k in "abcdefghijklmnoprstuvwxyzABCDEFGHIJKLMNOPRSTUVWXYZ" \
+                 "1234567890{[}]!@#$%^&*()_+=-~` ":
+            h.write(k)
+            h.press("Enter")
+            sleep(0.05)
+            h.await_text("T")
+            h.await_text(chr(35))
+        h.write("Q")
+        h.press("Enter")
         h.await_exit()
 
 
@@ -528,6 +689,71 @@ def test_pymatrix_command_line_italic():
         h.await_text(chr(35))
 
 
+def test_pymatrix_command_line_italic_reverse():
+    cmd = f"TERM=xterm-256color python3 pymatrix/pymatrix.py --test_mode -j -v"
+    with Runner("bash") as h:
+        h.await_text("$")
+        h.write("clear")
+        h.press("Enter")
+        h.write(cmd)
+        h.press("Enter")
+        h.await_text("T")
+        h.await_text(chr(35))
+
+
+def test_pymatrix_command_line_italic_zero_one():
+    cmd = f"TERM=xterm-256color python3 pymatrix/pymatrix.py -z -j -v"
+    with Runner("bash") as h:
+        h.await_text("$")
+        h.write("clear")
+        h.press("Enter")
+        h.write(cmd)
+        h.press("Enter")
+        h.await_text("0")
+        h.await_text("1")
+
+
+def test_pymatrix_default():
+    with Runner(*pymatrix_run("--test_mode")) as h:
+        h.await_text("T")
+        h.await_text(chr(35))
+        h.press("q")
+        h.await_exit()
+
+
+@pytest.mark.parametrize("args", [
+    pytest.param(("-d", "9"), id="delay slow"),
+    pytest.param(("-d", "1"), id="delay fast"),
+    pytest.param(("-b", ), id="bold on"),
+    pytest.param(("-B", ), id="bold all"),
+    pytest.param(("-C", "blue"), id="color blue"),
+    pytest.param(("-C", "yellow"), id="color yellow"),
+    pytest.param(("-L", "red"), id="lead color red"),
+    pytest.param(("-m", ), id="Multiple colors"),
+    pytest.param(("-M", ), id="Multiple random colors"),
+    pytest.param(("-c", ), id="cycle colors"),
+    pytest.param(("--background", "white"), id="background color white"),
+    pytest.param(("--reverse", ), id="reverse"),
+    pytest.param(("-v", ), id="reverse -v"),
+    pytest.param(("-W", ), id="do not clear -W"),
+    pytest.param(("--do_not_clear", ), id="do not clear"),
+    pytest.param(("--disable_keys", ), id="disable keys"),
+    pytest.param(("-C", "black", "-L", "green", "--background", "white"),
+                 id="color, lead and background"),
+    pytest.param(("-C", "red", "-L", "yellow", "--background", "cyan", "-B"),
+                 id="color, lead, background and bold all"),
+    pytest.param(("--background", "white", "-M"),
+                 id="background white and multiple random colors"),
+])
+def test_pymatrix_command_line_options(args):
+    arguments = ("--test_mode", *args)
+    with Runner(*pymatrix_run(*arguments)) as h:
+        h.await_text("T")
+        h.await_text(chr(35))
+        h.press("q")
+        h.await_exit()
+
+
 def test_build_character_set_all():
     test_set = pymatrix.build_character_set(["all"])
     assert "A" in test_set
@@ -572,3 +798,17 @@ def test_build_character_set_ext():
     assert ")" not in test_set
     assert "a" not in test_set
     assert chr(199) in test_set
+
+
+def test_pymatrix_main_list_colors(capsys):
+    pymatrix.main(["--list_colors"])
+    captured_output = capsys.readouterr().out
+    assert "red green blue yellow magenta cyan white black" in captured_output
+
+
+def test_pymatrix_main_list_commands(capsys):
+    pymatrix.main(["--list_commands"])
+    captured_output = capsys.readouterr().out
+    assert "Commands available during run" in captured_output
+    assert "Delay" in captured_output
+    assert "Cycle color delay" in captured_output

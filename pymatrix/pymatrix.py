@@ -58,7 +58,7 @@ CURSES_CH_CODES_COLOR = {114: "red", 82: "red", 116: "green", 84: "green",
                          79: "cyan", 112: "white", 80: "white", 18: "red",
                          20: "green", 25: "blue", 21: "yellow", 9: "magenta",
                          15: "cyan", 16: "white", 27: "black", 91: "black", 123: "black"}
-
+WAKE_UP_PAIR = 21
 MIN_SCREEN_SIZE_Y = 10
 MIN_SCREEN_SIZE_X = 10
 
@@ -187,6 +187,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
     """ Main loop. """
     curses.curs_set(0)  # Set the cursor to off.
     screen.timeout(0)  # Turn blocking off for screen.getch().
+    setup_curses_wake_up_colors(args.over_ride)
     if args.color_number is not None:
         setup_curses_color_number(args.color_number, args.background,
                                   args.over_ride)
@@ -310,7 +311,6 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
 
         for rem in remove_list:
             line_list.pop(line_list.index(rem))
-            x_list.append(rem.x)
 
         if args.wakeup:
             if wake_up_time <= 0:
@@ -516,7 +516,6 @@ def setup_curses_color_number(color_num: int,
     color_list = [color_num for _ in range(7)]
     for x, c in enumerate(color_list):
         curses.init_pair(x + 1, c, bg)
-    curses.init_pair(21, curses.COLOR_GREEN, curses.COLOR_BLACK)
 
 
 def setup_curses_colors(color: str, background_color: str, over_ride: bool) -> None:
@@ -530,9 +529,6 @@ def setup_curses_colors(color: str, background_color: str, over_ride: bool) -> N
         for x, c in enumerate(color_list):
             curses.init_pair(x + 1, CURSES_OVER_RIDE_COLORS[c],
                              CURSES_OVER_RIDE_COLORS[background_color])
-
-        curses.init_pair(21, CURSES_OVER_RIDE_COLORS["green"],
-                         CURSES_OVER_RIDE_COLORS["black"])
     else:
         if color == "random":
             color_list = list(CURSES_COLOR.keys())
@@ -541,14 +537,22 @@ def setup_curses_colors(color: str, background_color: str, over_ride: bool) -> N
 
         for x, c in enumerate(color_list):
             curses.init_pair(x + 1, CURSES_COLOR[c], CURSES_COLOR[background_color])
-        curses.init_pair(21, curses.COLOR_GREEN, curses.COLOR_BLACK)
+
+
+def setup_curses_wake_up_colors(override: bool) -> None:
+    if override:
+        curses.init_pair(WAKE_UP_PAIR,
+                         CURSES_OVER_RIDE_COLORS["green"],
+                         CURSES_OVER_RIDE_COLORS["black"])
+    else:
+        curses.init_pair(WAKE_UP_PAIR, CURSES_COLOR["green"], CURSES_COLOR["black"])
 
 
 def wake_up_neo(screen, test_mode: bool) -> None:
     z = 0.06 if test_mode else 1  # Test mode off set. To make test time shorter.
     screen.erase()
     # screen.refresh()
-    screen.bkgd(" ", curses.color_pair(21))
+    screen.bkgd(" ", curses.color_pair(WAKE_UP_PAIR))
     screen.refresh()
     sleep(3 * z)
     display_text(screen, "Wake up, Neo...", 0.08 * z, 7.0 * z)
@@ -560,7 +564,7 @@ def wake_up_neo(screen, test_mode: bool) -> None:
 
 def display_text(screen, text: str, type_time: float, hold_time: float) -> None:
     for i, letter in enumerate(text, start=1):
-        screen.addstr(1, i, letter, curses.color_pair(21) + curses.A_BOLD)
+        screen.addstr(1, i, letter, curses.color_pair(WAKE_UP_PAIR) + curses.A_BOLD)
         screen.refresh()
         sleep(type_time)
     sleep(hold_time)
