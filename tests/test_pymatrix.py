@@ -356,6 +356,13 @@ def test_pymatrix_display_commands(capsys):
     assert expected_text in captured_output
 
 
+def test_pymatrix_display_command_quit(capsys):
+    pymatrix.display_commands()
+    captured_output = capsys.readouterr().out
+    expected_text = "q or Q To quit Pymatrix-rain"
+    assert expected_text in captured_output
+
+
 def test_pymatrix_control_c_running():
     with Runner("bash") as h:
         h.await_text("$")

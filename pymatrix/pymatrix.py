@@ -632,6 +632,7 @@ def int_between_1_and_255(value: str) -> int:
 def display_commands() -> None:
     print("Commands available during run")
     print("0 - 9  Delay time (0-Fast, 4-Default, 9-Slow)")
+    print("q or Q To quit Pymatrix-rain")
     print("b      Bold characters on")
     print("B      Bold all characters")
     print("n      Bold off (Default)")
