@@ -4,63 +4,66 @@ Matrix rain effect using python 3 and curses.
 ### How to Download
  >pip install pymatrix-rain
  
- to run: pymatrix-rain
+ To run: pymatrix-rain
 
 
 ##### NOTE:
 
-> not tested on windows or mac
+> not tested on Windows or Mac
 
 
 ###  Commands
-- **<kbd>Q</kbd>** = *quits*
-- **<kbd>b</kbd>** = *bold on*
-- **<kbd>B</kbd>** = *bold all*
-- **<kbd>n</kbd>** = *bold off*
-- **<kbd>0-9</kbd>** = *delay speed*
-- **<kbd>a</kbd>** = *asynchronous like scrolling*
-- **<kbd>m</kbd>** = *multiple color mode*
-- **<kbd>M</kbd>** = *multiple random color mode*
-- **<kbd>d</kbd>** = *reset to default*
-- **<kbd>c</kbd>** = *cycle through colors automatically*
-- **<kbd>l</kbd>** = *toggle double space lines*
-- **<kbd>e</kbd>** = *toggle extended characters*
-- **<kbd>E</kbd>** = *only extended characters if on*
+- **<kbd>Q</kbd>** or **<kbd>q</kbd>** = *Quits*
+- **<kbd>b</kbd>** = *Bold on*
+- **<kbd>B</kbd>** = *Bold all*
+- **<kbd>n</kbd>** = *Bold off*
+- **<kbd>0-9</kbd>** = *Delay speed 0-Fast, 4-Default, 9-Slow*
+- **<kbd>a</kbd>** = *Asynchronous like scrolling*
+- **<kbd>m</kbd>** = *Multiple color mode*
+- **<kbd>M</kbd>** = *Multiple random color mode*
+- **<kbd>d</kbd>** = *Reset to default*
+- **<kbd>c</kbd>** = *Cycle through colors automatically*
+- **<kbd>l</kbd>** = *Toggle double space lines*
+- **<kbd>e</kbd>** = *Toggle extended characters*
+- **<kbd>E</kbd>** = *Only extended characters if on*
 - **<kbd>z</kbd>** = *Zero and One Mode On*
 - **<kbd>Z</kbd>** = *Zero and One Mode Off*
 - **<kbd>f</kbd>** = *Freeze and unfreeze the matrix. Can still use **<kbd>Q</kbd>** to quit.*
 - **<kbd>v</kbd>** = *Toggle the matrix to scroll up*
 - **<kbd>W</kbd>** = *Toggle do not clear screen*
-- **<kbd>w</kbd>** = *Clear the screen, wait 2 seconds and restart*
+- **<kbd>w</kbd>** = *Clear the screen, wait 2 seconds and start*
 - **<kbd>j</kbd>** = *Toggle italic text*
-- **<kbd>shift 0-9</kbd>** = *cycle color delay*
+- **<kbd>shift 0-9</kbd>** = *Cycle color delay*
 
-##### rain colors
-- **<kbd>r</kbd>** = red
-- **<kbd>t</kbd>** = green
-- **<kbd>y</kbd>** = blue
-- **<kbd>u</kbd>** = yellow
-- **<kbd>i</kbd>** = magenta
-- **<kbd>o</kbd>** = cyan
-- **<kbd>p</kbd>** = white
+##### Rain Colors
+- **<kbd>r</kbd>** = Red
+- **<kbd>t</kbd>** = Green
+- **<kbd>y</kbd>** = Blue
+- **<kbd>u</kbd>** = Yellow
+- **<kbd>i</kbd>** = Magenta
+- **<kbd>o</kbd>** = Cyan
+- **<kbd>p</kbd>** = White
+- **<kbd>[</kbd>** = Black
 
-##### lead char color
-- **<kbd>R</kbd>** = red
-- **<kbd>T</kbd>** = green
-- **<kbd>Y</kbd>** = blue
-- **<kbd>U</kbd>** = yellow
-- **<kbd>I</kbd>** = magenta
-- **<kbd>O</kbd>** = cyan
-- **<kbd>P</kbd>** = white
+##### Lead Char Color
+- **<kbd>R</kbd>** = Red
+- **<kbd>T</kbd>** = Green
+- **<kbd>Y</kbd>** = Blue
+- **<kbd>U</kbd>** = Yellow
+- **<kbd>I</kbd>** = Magenta
+- **<kbd>O</kbd>** = Cyan
+- **<kbd>P</kbd>** = White
+- **<kbd>{</kbd>** = Black
 
-##### background colors
-- **<kbd>ctrl-r</kbd>** = red
-- **<kbd>ctrl-t</kbd>** = green
-- **<kbd>ctrl-y</kbd>** = blue
-- **<kbd>ctrl-u</kbd>** = yellow
-- **<kbd>ctrl-i</kbd>** = magenta
-- **<kbd>ctrl-o</kbd>** = cyan
-- **<kbd>ctrl-p</kbd>** = white
+##### Background Colors
+- **<kbd>ctrl-r</kbd>** = Red
+- **<kbd>ctrl-t</kbd>** = Green
+- **<kbd>ctrl-y</kbd>** = Blue
+- **<kbd>ctrl-u</kbd>** = Yellow
+- **<kbd>ctrl-i</kbd>** = Magenta
+- **<kbd>ctrl-o</kbd>** = Cyan
+- **<kbd>ctrl-p</kbd>** = White
+- **<kbd>ctrl-[</kbd>** = Black
 
 ## Screen Shots
 ![matrix1.png](https://i.fluffy.cc/Vs2ZW5PBdM0QXv7Ljz3LDV7JCg2LJBJK.png)
@@ -71,6 +74,14 @@ Matrix rain effect using python 3 and curses.
 
 ![matrix4.png](https://i.fluffy.cc/h582RvNQxqcsX5029wcK9q0v2kBPcRMd.png)
 
+Scrolling Up
 ![matrix5.png](https://i.fluffy.cc/q7xjhc011J6N5nP53dDKrnnJNX7Qp5t3.png)
 
+Zero and One Mode
 ![matrix6.png](https://i.fluffy.cc/JdRwzdWxltVxc80RDGg7BDB41hZMFmNN.png)
+
+Extended Characters
+![matrix7.png](https://i.fluffy.cc/P20WlgFZwNsdCLDxfnmbSPcKCZKnlHS6.png)
+
+Italic Mode
+![matrix8.png](https://i.fluffy.cc/5jBjfXT0c7Vjl0gX1xkMT7nq3wXNwkNV.png)
