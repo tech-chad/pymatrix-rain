@@ -215,7 +215,7 @@ def test_async_scroll_turn():
 
 
 def test_single_line_class_down_init():
-    with mock.patch.object(pymatrix, "randint", return_value=3):
+    with mock.patch.object(pymatrix.random, "randint", return_value=3):
         line = pymatrix.SingleLine(5, 6, "down")
         assert line.direction == "down"
         assert line.height == 4
@@ -229,7 +229,7 @@ def test_single_line_class_down_init():
 
 
 def test_single_line_class_up_init():
-    with mock.patch.object(pymatrix, "randint", return_value=3):
+    with mock.patch.object(pymatrix.random, "randint", return_value=3):
         line = pymatrix.SingleLine(5, 6, "up")
         assert line.direction == "up"
         assert line.height == 4
@@ -243,7 +243,7 @@ def test_single_line_class_up_init():
 
 
 def test_single_line_class_down_one_turn():
-    with mock.patch.object(pymatrix, "randint", return_value=3):
+    with mock.patch.object(pymatrix.random, "randint", return_value=3):
         line = pymatrix.SingleLine(5, 6, "down")
         lead_char = line.get_lead()
         assert lead_char == (0, 5)
@@ -256,7 +256,7 @@ def test_single_line_class_down_one_turn():
 
 
 def test_single_line_class_up_one_turn():
-    with mock.patch.object(pymatrix, "randint", return_value=3):
+    with mock.patch.object(pymatrix.random, "randint", return_value=3):
         line = pymatrix.SingleLine(5, 6, "up")
         lead_char = line.get_lead()
         assert lead_char == (4, 5)
@@ -269,7 +269,7 @@ def test_single_line_class_up_one_turn():
 
 
 def test_single_line_class_down_multiple():
-    with mock.patch.object(pymatrix, "randint", return_value=3):
+    with mock.patch.object(pymatrix.random, "randint", return_value=3):
         line = pymatrix.SingleLine(5, 6, "down")
         line.get_lead()
         line.get_next()
@@ -340,7 +340,7 @@ def test_single_line_class_down_multiple():
 
 
 def test_single_line_class_up_multiple():
-    with mock.patch.object(pymatrix, "randint", return_value=3):
+    with mock.patch.object(pymatrix.random, "randint", return_value=3):
         line = pymatrix.SingleLine(5, 6, "up")
         line.get_lead()
         line.get_next()
