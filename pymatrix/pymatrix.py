@@ -37,6 +37,16 @@ EXT_CHAR_LIST = ["Ç", "È", "Ì", "Í", "Ð", "Ñ", "Ò", "×", "Ø", "Ù", "Ú
                  "Ž", "ž", "ș", "ț", "ë", "Ĉ", "Ď", "ď", "Ġ", "Ř", "°", "«",
                  "±", "Δ", "Ξ", "Λ", ]
 
+KATAKANA_CHAR_LIST = ["ｦ", "ｱ", "ｳ", "ｴ", "ｵ", "ｶ", "ｷ", "ｹ", "ｺ", "ｻ", "ｼ",
+                      "ｽ", "ｾ", "ｿ", "ﾀ", "ﾂ", "ﾃ", "ﾅ", "ﾆ", "ﾇ", "ﾈ", "ﾊ",
+                      "ﾋ", "ﾎ", "ﾏ", "ﾐ", "ﾑ", "ﾒ", "ﾓ", "ﾔ", "ﾕ", "ﾗ", "ﾘ",
+                      "ﾜ", "ﾍ", "ｲ", "ｸ", "ﾁ", "ﾄ", "ﾉ", "ﾌ", "ﾖ", "ﾙ", "ﾚ",
+                      "ﾛ", "ﾝ"]
+
+KATAKANA_CHAR_LIST_ADDON = ["0", "1", "2", "3", "4", "5", "7", "8", "9", "Z",
+                            ":", ".", "=", "*", "+", "-", "<", ">"]
+
+
 DELAY_SPEED = {0: 0.005, 1: 0.01, 2: 0.025, 3: 0.04, 4: 0.055, 5: 0.07,
                6: 0.085, 7: 0.1, 8: 0.115, 9: 0.13}
 
@@ -168,6 +178,7 @@ def build_character_set(sets: list) -> list:
     if sets[0] == "all":
         char_set.extend(CHAR_LIST)
         char_set.extend(EXT_CHAR_LIST)
+        char_set.extend(KATAKANA_CHAR_LIST)
         return char_set
     elif sets[0] == "zero":
         char_set.extend(["0", "1"])
@@ -175,12 +186,19 @@ def build_character_set(sets: list) -> list:
     elif sets[0] == "test":
         char_set.extend(["T", chr(35)])
         return char_set
+    elif len(sets) == 1 and sets[0] == "katakana":
+        char_set.extend(KATAKANA_CHAR_LIST)
+        char_set.extend(KATAKANA_CHAR_LIST_ADDON)
+        return char_set
 
     for s in sets:
         if s == "char":
             char_set.extend(CHAR_LIST)
         elif s == "ext":
             char_set.extend(EXT_CHAR_LIST)
+        elif s == "katakana":
+            char_set.extend(KATAKANA_CHAR_LIST)
+
     return char_set
 
 
@@ -205,8 +223,14 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
         direction = "up"
     else:
         direction = "down"
-    if args.ext:
+    if args.ext and args.katakana:
+        char_set = build_character_set(["ext", "char", "katakana"])
+    elif args.katakana:
+        char_set = build_character_set(["char", "katakana"])
+    elif args.ext:
         char_set = build_character_set(["ext", "char"])
+    elif args.Katakana_only:
+        char_set = build_character_set(["katakana"])
     elif args.ext_only:
         char_set = build_character_set(["ext"])
     elif args.test_mode or args.test_mode_ext:
@@ -343,6 +367,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             keys_pressed = 2
         elif ch == 107 and keys_pressed == 2:  # k
             keys_pressed = 3
+            continue
         elif ch == 101 and keys_pressed == 3:  # e
             wake_up_neo(screen, args.test_mode)
             while screen.getch() != -1:  # clears out the buffer
@@ -458,6 +483,8 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             args.async_scroll = False
             args.delay = 4
             char_set = build_character_set(["char"])
+            args.Katakana_only = False
+            args.katakana = False
             direction = "down"
             args.do_not_clear = False
             args.italic = False
@@ -496,6 +523,22 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                     break
             if quit_matrix:
                 break
+        elif ch == 75:  # K
+            args.zero_one = False
+            if args.Katakana_only:
+                char_set = build_character_set(["char"])
+                args.Katakana_only = False
+            else:
+                args.Katakana_only = True
+                char_set = build_character_set(["katakana"])
+        elif ch == 107:  # k
+            args.zero_one = False
+            if args.katakana:
+                args.katakana = False
+                char_set = build_character_set(["char"])
+            else:
+                args.katakana = True
+                char_set = build_character_set(["char", "katakana"])
 
     screen.erase()
     screen.refresh()
@@ -712,6 +755,14 @@ def argument_parsing(
                              "The matrix scrolls up (vertical)")
     parser.add_argument("-j", "--italic", action="store_true",
                         help="Italic characters")
+    parser.add_argument("-k", "--katakana", action="store_true",
+                        help="Use half width Katakana (as seen in the movie) "
+                             "characters. NOTE: requires the correct"
+                             " font to be installed to work")
+    parser.add_argument("-K", "--Katakana_only", action="store_true",
+                        help="Use only half width Katakana (as seen "
+                             "in the movie) characters only. NOTE: requires"
+                             " the correct font to be installed to work")
     parser.add_argument("-O", dest="over_ride", action="store_true",
                         help="Override terminal window colors by using color"
                              " numbers between 16 and 255. This requires 256"

@@ -234,6 +234,22 @@ def test_argument_parsing_italic(test_value, expected_result):
     assert result.italic == expected_result
 
 
+@pytest.mark.parametrize("test_value, expected_result", [
+    ([], False), (["-K"], True), (["--Katakana_only"], True),
+])
+def test_argument_parsing_katakana_only(test_value, expected_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.Katakana_only == expected_result
+
+
+@pytest.mark.parametrize("test_value, expected_result", [
+    ([], False), (["-k"], True), (["--katakana"], True),
+])
+def test_argument_parsing_katakana(test_value, expected_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.katakana == expected_result
+
+
 # testing helper functions
 @pytest.mark.parametrize("test_values, expected_results", [
     ("0", 0), ("1", 1), ("2", 2), ("3", 3), ("4", 4),
