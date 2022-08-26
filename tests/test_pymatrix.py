@@ -761,6 +761,37 @@ def test_pymatrix_command_line_options(args):
         h.await_exit()
 
 
+# def test_pymatrix_command_line_katakana_only():
+#     cmd = f"TERM=xterm-256color python3 pymatrix/pymatrix.py --test_mode"
+#     with Runner("bash", width=100, height=80) as h:
+#         h.default_timeout = 5
+#         h.await_text("$")
+#         h.write("clear")
+#         h.press("Enter")
+#         # h.write("locale")
+#         # h.press("Enter")
+#         # h.await_text("LANG")
+#         # sc = h.screenshot()
+#         # print(sc)
+#         h.write(cmd)
+#         h.press("Enter")
+#         sleep(2)
+#         h.await_text("T")
+#         # sc = h.screenshot()
+#         # sleep(2)
+#         # a = h.report_variables()
+#         # print(a)
+#         # sc = h.screenshot()
+#         # assert "ﾒ" in sc
+#         # print(sc)
+#         h.await_text("ﾒ")
+#
+#
+#     # with Runner(*pymatrix_run(["-K"])) as h:
+#     #     h.default_timeout = 5
+#     #     h.await_text("ﾒ")
+
+
 def test_build_character_set_all():
     test_set = pymatrix.build_character_set(["all"])
     assert "A" in test_set
@@ -768,6 +799,9 @@ def test_build_character_set_all():
     assert "*" in test_set
     assert "a" in test_set
     assert chr(199) in test_set
+    assert "ﾃ" in test_set
+    assert "ｼ" in test_set
+    assert "ﾈ" in test_set
 
 
 def test_build_character_set_zero():
@@ -805,6 +839,60 @@ def test_build_character_set_ext():
     assert ")" not in test_set
     assert "a" not in test_set
     assert chr(199) in test_set
+
+
+def test_build_character_set_katakana_only():
+    test_set = pymatrix.build_character_set(["katakana"])
+    assert "A" not in test_set
+    assert "T" not in test_set
+    assert "(" not in test_set
+    assert "g" not in test_set
+    assert "ś" not in test_set
+    assert "å" not in test_set
+    assert "ｳ" in test_set
+    assert "ﾒ" in test_set
+    assert "1" in test_set
+    assert "Z" in test_set
+    assert ">" in test_set
+
+
+def test_build_character_set_katakana_and_char():
+    test_set = pymatrix.build_character_set(["char", "katakana"])
+    assert "ś" not in test_set
+    assert "å" not in test_set
+    assert "A" in test_set
+    assert "1" in test_set
+    assert "T" in test_set
+    assert "(" in test_set
+    assert "g" in test_set
+    assert "ｳ" in test_set
+    assert "ﾒ" in test_set
+
+
+def test_build_character_set_katakana_and_ext():
+    test_set = pymatrix.build_character_set(["ext", "katakana"])
+    assert "A" not in test_set
+    assert "1" not in test_set
+    assert "T" not in test_set
+    assert "(" not in test_set
+    assert "g" not in test_set
+    assert "ś" in test_set
+    assert "å" in test_set
+    assert "ｳ" in test_set
+    assert "ﾒ" in test_set
+
+
+def test_build_character_set_katakana_char_and_ext():
+    test_set = pymatrix.build_character_set(["ext", "katakana", "char"])
+    assert "A" in test_set
+    assert "1" in test_set
+    assert "T" in test_set
+    assert "(" in test_set
+    assert "g" in test_set
+    assert "ś" in test_set
+    assert "å" in test_set
+    assert "ｳ" in test_set
+    assert "ﾒ" in test_set
 
 
 def test_pymatrix_main_list_colors(capsys):
