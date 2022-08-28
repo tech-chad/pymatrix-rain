@@ -16,21 +16,26 @@ def test_pymatrix_screen_test_mode():
         h.await_text("T")
         sc = h.screenshot()
         assert "x" not in sc
+        assert "Ä" not in sc
+        assert "ﾎ" not in sc
 
 
-def test_pymatrix_screen_test_mode_ext():
-    with Runner(*pymatrix_run("--test_mode_ext", "-d1")) as h:
-        h.await_text(chr(35))
+def test_pymatrix_test_ext_only():
+    with Runner(*pymatrix_run("--test_mode", "-E", "-d1")) as h:
+        h.await_text("Ä")
         sc = h.screenshot()
         assert "x" not in sc
+        assert "T" not in sc
+        assert "ﾎ" not in sc
 
 
-def test_pymatrix_screen_test_mode_both():
-    with Runner(*pymatrix_run("--test_mode_ext", "--test_mode", "-d1")) as h:
-        h.await_text(chr(35))
+def test_pymatrix_test_ext_too():
+    with Runner(*pymatrix_run("--test_mode", "-e", "-d1")) as h:
+        h.await_text("Ä")
         h.await_text("T")
         sc = h.screenshot()
         assert "x" not in sc
+        assert "ﾎ" not in sc
 
 
 @pytest.mark.parametrize("test_key", ["Q", "q"])
@@ -42,7 +47,8 @@ def test_pymatrix_quit(test_key):
         h.await_exit()
 
 
-@pytest.mark.parametrize("test_key", ["Q", "q", " ", "8", ":", "*", "M", "b", "I"])
+@pytest.mark.parametrize("test_key",
+                         ["Q", "q", " ", "8", ":", "*", "M", "b", "I"])
 def test_pymatrix_quit_screen_saver_mode(test_key):
     with Runner(*pymatrix_run("--test_mode", "-s", "-d1")) as h:
         h.default_timeout = 2
@@ -164,37 +170,43 @@ def test_wakeup_help_suppressed():
 
 
 def test_pymatrix_setup_curses_colors():
-    with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
+    with mock.patch.object(pymatrix.curses,
+                           "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_colors("random", "black", False)
         assert mock_pair.call_count == 8
 
 
 def test_curses_lead_color():
-    with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
+    with mock.patch.object(pymatrix.curses,
+                           "init_pair", return_value=None) as mock_pair:
         pymatrix.curses_lead_color("blue", "black", False)
         assert mock_pair.call_count == 1
 
 
 def test_pymatrix_setup_curses_colors_override():
-    with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
+    with mock.patch.object(pymatrix.curses,
+                           "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_colors("random", "black", True)
         assert mock_pair.call_count == 8
 
 
 def test_curses_lead_color_override():
-    with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
+    with mock.patch.object(pymatrix.curses,
+                           "init_pair", return_value=None) as mock_pair:
         pymatrix.curses_lead_color("blue", "black", True)
         assert mock_pair.call_count == 1
 
 
 def test_pymatrix_setup_color_number():
-    with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
+    with mock.patch.object(pymatrix.curses,
+                           "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_color_number(50, "black", False)
         assert mock_pair.call_count == 7
 
 
 def test_pymatrix_setup_color_number_override():
-    with mock.patch.object(pymatrix.curses, "init_pair", return_value=None) as mock_pair:
+    with mock.patch.object(pymatrix.curses,
+                           "init_pair", return_value=None) as mock_pair:
         pymatrix.setup_curses_color_number(50, "black", True)
         assert mock_pair.call_count == 7
 
@@ -418,6 +430,42 @@ def test_pymatrix_wakeup_now_keys():
         h.await_text("T")
 
 
+def test_pymatrix_wakeup_now_keys_ext_char():
+    # this is a long test
+    with Runner(*pymatrix_run("--test_mode", "-e")) as h:
+        h.await_text("T")
+        h.await_text("Ä")
+        h.default_timeout = 10
+        h.write("w")
+        h.write("A")
+        h.write("k")
+        h.write("e")
+        h.await_text("Wake up, Neo...")
+        h.await_text("The Matrix has you...")
+        h.await_text("Follow the white rabbit.")
+        h.await_text("Knock, knock, Neo.")
+        h.await_text("T")
+        h.await_text("Ä")
+
+
+def test_pymatrix_wakeup_now_keys_katakana_only():
+    # this is a long test
+    with Runner(*pymatrix_run("--test_mode", "-K")) as h:
+        h.await_text("ﾎ")
+        h.await_text("0")
+        h.default_timeout = 10
+        h.write("w")
+        h.write("A")
+        h.write("k")
+        h.write("e")
+        h.await_text("Wake up, Neo...")
+        h.await_text("The Matrix has you...")
+        h.await_text("Follow the white rabbit.")
+        h.await_text("Knock, knock, Neo.")
+        h.await_text("ﾎ")
+        h.await_text("0")
+
+
 def test_pymatrix_wakeup_do_not_quit_on_q():
     # this is a long test
     with Runner(*pymatrix_run("--test_mode", "--wakeup")) as h:
@@ -484,7 +532,8 @@ def test_pymatrix_wakeup_now_ignore_keys_multiple_key_presses():
 
 @pytest.mark.parametrize("width", [80, 50, 40, 30, 20, 15, 10])
 def test_pymatrix_double_space(width):
-    with Runner(*pymatrix_run("--test_mode", "-l"), width=width, height=50) as h:
+    with Runner(*pymatrix_run("--test_mode", "-l"),
+                width=width, height=50) as h:
         h.await_text("T")
         sc = h.screenshot()
         assert "Traceback" not in sc
@@ -546,7 +595,8 @@ def test_pymatrix_no_zero_one_running():
         h.default_timeout = 3
         h.await_text("T")
         sc = h.screenshot()
-        for letter in "AaBbCcDe0987654321ZzRrOoPpQqWweEYyUuIiOoPpKkLlJjmMnNXxSsgGhH":
+        for letter in "AaBbCcDe0987654321ZzRrOoPpQqWweEY" \
+                      "yUuIiOoPpKkLlJjmMnNXxSsgGhH":
             assert letter not in sc
 
 
@@ -581,14 +631,12 @@ def test_pymatrix_disable_keys_check_running_keys():
     with Runner(*pymatrix_run("--test_mode", "--disable_keys")) as h:
         h.default_timeout = 3
         h.await_text("T")
-        h.await_text(chr(35))
         for k in "abcdefghijklmnoprstuvwxyzABCDEFGHIJKLMNOPRSTUVWXYZ" \
                  "1234567890{[}]!@#$%^&*()_+=-~` ":
             h.write(k)
             h.press("Enter")
             sleep(0.05)
             h.await_text("T")
-            h.await_text(chr(35))
         h.write("Q")
         h.press("Enter")
         h.await_exit()
@@ -634,7 +682,8 @@ def test_pymatrix_freeze_no_other_keys():
 
 @pytest.mark.parametrize("test_value", ["-v", "--reverse"])
 def test_pymatrix_reverse(test_value):
-    with Runner(*pymatrix_run("--test_mode", test_value), width=100, height=10) as h:
+    with Runner(*pymatrix_run("--test_mode", test_value),
+                width=100, height=10) as h:
         h.await_text("T")
 
 
@@ -643,6 +692,99 @@ def test_pymatrix_reverse_key():
         h.await_text("T")
         h.press("v")
         h.await_text("T")
+
+
+def test_pymatrix_normal_char_at_top():
+    with Runner(*pymatrix_run("--test_mode"), width=50, height=10) as h:
+        h.await_text("T")
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        assert "T" in lines[0] or "T" in lines[1]
+        assert "T" not in lines[-2] and "T" not in lines[-1]
+
+
+@pytest.mark.parametrize("test_value", ["-v", "--reverse"])
+def test_pymatrix_scrolling_up_chars_at_bottom(test_value):
+    with Runner(*pymatrix_run("--test_mode", test_value),
+                width=50, height=10) as h:
+        h.await_text("T")
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        assert "T" in lines[-2] or "T" in lines[-1]
+        assert "T" not in lines[0] and "T" not in lines[1]
+
+
+def test_pymatrix_change_dir():
+    # test could be flaky
+    with Runner(*pymatrix_run("--test_mode", "-d9"), width=50, height=10) as h:
+        h.await_text("T")
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        assert "T" in lines[0] or "T" in lines[1]
+        assert "T" not in lines[-2] and "T" not in lines[-1]
+        sleep(0.1)
+        h.press("v")
+        h.await_text("T")
+        sleep(0.1)
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        print(sc)
+        assert "T" in lines[-2] or "T" in lines[-1]
+        assert "T" not in lines[0] and "T" not in lines[1]
+
+
+def test_pymatrix_change_dir_up_to_down():
+    # test could be flaky
+    with Runner(*pymatrix_run("--test_mode", "-d9", "-v"),
+                width=50, height=10) as h:
+        h.await_text("T")
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        assert "T" in lines[-2] or "T" in lines[-1]
+        assert "T" not in lines[0] and "T" not in lines[1]
+        sleep(0.1)
+        h.press("v")
+        h.await_text("T")
+        sleep(0.1)
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        assert "T" in lines[0] or "T" in lines[1]
+        assert "T" not in lines[-2] and "T" not in lines[-1]
+
+
+def test_pymatrix_change_dir_up_to_down_default_key():
+    # test could be flaky
+    with Runner(*pymatrix_run("--test_mode", "-d9", "-v"),
+                width=50, height=10) as h:
+        h.await_text("T")
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        assert "T" in lines[-2] or "T" in lines[-1]
+        assert "T" not in lines[0] and "T" not in lines[1]
+        sleep(0.1)
+        h.press("d")
+        h.await_text("T")
+        sleep(0.1)
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        assert "T" in lines[0] or "T" in lines[1]
+        assert "T" not in lines[-2] and "T" not in lines[-1]
 
 
 def test_pymatrix_clear_screen():
@@ -657,6 +799,43 @@ def test_pymatrix_clear_screen():
         h.await_text("T")
 
 
+def test_pymatrix_clear_screen_katakana():
+    with Runner(*pymatrix_run("--test_mode", "-K"), width=80, height=20) as h:
+        h.default_timeout = 3
+        h.await_text("ﾎ")
+        h.await_text("0")
+        h.press("w")
+        h.press("Enter")
+        sleep(0.5)
+        sc = h.screenshot()
+        assert "T" not in sc
+        assert "ﾎ" not in sc
+        assert "0" not in sc
+        h.await_text("ﾎ")
+        h.await_text("0")
+
+
+def test_pymatrix_restore_defaults_katakana():
+    with Runner(*pymatrix_run("--test_mode", "-K")) as h:
+        h.default_timeout = 4
+        h.await_text("ﾎ")
+        h.await_text("0")
+        h.press("d")
+        h.await_text("T")
+        sleep(4)
+        sc = h.screenshot()
+        assert "ﾎ" not in sc
+
+
+def test_pymatrix_restore_defaults_delay():
+    with Runner(*pymatrix_run("--test_mode", "-d8")) as h:
+        h.default_timeout = 1
+        h.await_text("T")
+        h.press("d")
+        sleep(1)
+        h.await_text("T")
+
+
 @pytest.mark.parametrize("test_value", ["1", "100", "40", "255", "128"])
 def test_pymatrix_valid_color_number(test_value):
     cmd = f"TERM=xterm-256color python3 pymatrix/pymatrix.py --test_mode" \
@@ -668,7 +847,6 @@ def test_pymatrix_valid_color_number(test_value):
         h.write(cmd)
         h.press("Enter")
         h.await_text("T")
-        h.await_text(chr(35))
 
 
 @pytest.mark.parametrize("test_value", ["0", "A", "blue", "256"])
@@ -681,7 +859,8 @@ def test_pymatrix_invalid_color_number(test_value):
         h.press("Enter")
         h.write(cmd)
         h.press("Enter")
-        h.await_text(f"{test_value} is an invalid positive int between 1 and 255")
+        h.await_text(f"{test_value} is an invalid positive int "
+                     f"between 1 and 255")
 
 
 def test_pymatrix_command_line_italic():
@@ -693,7 +872,6 @@ def test_pymatrix_command_line_italic():
         h.write(cmd)
         h.press("Enter")
         h.await_text("T")
-        h.await_text(chr(35))
 
 
 def test_pymatrix_command_line_italic_reverse():
@@ -705,7 +883,6 @@ def test_pymatrix_command_line_italic_reverse():
         h.write(cmd)
         h.press("Enter")
         h.await_text("T")
-        h.await_text(chr(35))
 
 
 def test_pymatrix_command_line_italic_zero_one():
@@ -723,7 +900,6 @@ def test_pymatrix_command_line_italic_zero_one():
 def test_pymatrix_default():
     with Runner(*pymatrix_run("--test_mode")) as h:
         h.await_text("T")
-        h.await_text(chr(35))
         h.press("q")
         h.await_exit()
 
@@ -756,93 +932,211 @@ def test_pymatrix_command_line_options(args):
     arguments = ("--test_mode", *args)
     with Runner(*pymatrix_run(*arguments)) as h:
         h.await_text("T")
-        h.await_text(chr(35))
         h.press("q")
         h.await_exit()
 
 
-# def test_pymatrix_command_line_katakana_only():
-#     cmd = f"TERM=xterm-256color python3 pymatrix/pymatrix.py --test_mode"
-#     with Runner("bash", width=100, height=80) as h:
-#         h.default_timeout = 5
-#         h.await_text("$")
-#         h.write("clear")
-#         h.press("Enter")
-#         # h.write("locale")
-#         # h.press("Enter")
-#         # h.await_text("LANG")
-#         # sc = h.screenshot()
-#         # print(sc)
-#         h.write(cmd)
-#         h.press("Enter")
-#         sleep(2)
-#         h.await_text("T")
-#         # sc = h.screenshot()
-#         # sleep(2)
-#         # a = h.report_variables()
-#         # print(a)
-#         # sc = h.screenshot()
-#         # assert "ﾒ" in sc
-#         # print(sc)
-#         h.await_text("ﾒ")
-#
-#
-#     # with Runner(*pymatrix_run(["-K"])) as h:
-#     #     h.default_timeout = 5
-#     #     h.await_text("ﾒ")
+def test_pymatrix_test_katakana_ony():
+    with Runner(*pymatrix_run("--test_mode", "-K")) as h:
+        h.await_text("ﾎ")
+        h.await_text("0")
+        sc = h.screenshot()
+        assert "T" not in sc
+        assert "Ä" not in sc
+        assert "5" not in sc
+        assert "r" not in sc
+
+
+def test_pymatrix_test_katakana_char():
+    with Runner(*pymatrix_run("--test_mode", "-k")) as h:
+        h.await_text("ﾎ")
+        h.await_text("T")
+        sc = h.screenshot()
+        assert "Ä" not in sc
+        assert "5" not in sc
+        assert "r" not in sc
+        assert "0" not in sc
+
+
+def test_pymatrix_test_katakana_char_ext():
+    with Runner(*pymatrix_run("--test_mode", "-k", "-e")) as h:
+        h.await_text("ﾎ")
+        h.await_text("T")
+        h.await_text("Ä")
+        sc = h.screenshot()
+        assert "5" not in sc
+        assert "r" not in sc
+        assert "0" not in sc
+
+
+def test_pymatrix_running_command_katakana_only():
+    with Runner(*pymatrix_run("--test_mode")) as h:
+        h.await_text("T")
+        h.press("K")
+        h.await_text("ﾎ")
+        h.await_text("0")
+
+
+def test_pymatrix_running_command_katakana_only_switching_back():
+    with Runner(*pymatrix_run("--test_mode")) as h:
+        h.default_timeout = 5
+        h.await_text("T")
+        h.press("K")
+        h.await_text("ﾎ")
+        h.await_text("0")
+        sleep(4)
+        h.press("k")
+        h.await_text("T")
+
+
+def test_pymatrix_running_command_katakana():
+    with Runner(*pymatrix_run("--test_mode")) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        h.press("k")
+        h.await_text("ﾎ")
+        sleep(2)
+        h.await_text("ﾎ")
+        h.await_text("T")
+
+
+def test_pymatrix_katakana_quit():
+    with Runner(*pymatrix_run("--test_mode", "-K")) as h:
+        h.await_text("ﾎ")
+        h.press("q")
+        h.await_exit()
+
+
+def test_pymatrix_test_katakana_ony_double_columns():
+    # double space lines
+    with Runner(*pymatrix_run("--test_mode", "-K", "-l")) as h:
+        h.await_text("ﾎ")
+        h.await_text("0")
+
+
+def test_pymatrix_katakana_italic():
+    with Runner(*pymatrix_run("--test_mode", "-K", "-j")) as h:
+        h.await_text("ﾎ")
+        h.await_text("0")
+
+
+def test_pymatrix_katakana_bold_all():
+    with Runner(*pymatrix_run("--test_mode", "-K", "-B")) as h:
+        h.await_text("ﾎ")
+        h.await_text("0")
+
+
+def test_pymatrix_katakana_reverse():
+    with Runner(*pymatrix_run("--test_mode", "-K", "-v")) as h:
+        h.await_text("ﾎ")
+        h.await_text("0")
+
+
+def test_delay_keys():
+    with Runner(*pymatrix_run("--test_mode")) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        for k in "0123456789":
+            sleep(0.5)
+            sc = h.screenshot()
+            h.press(k)
+            h.await_text("T")
+            sleep(0.1)
+            assert sc != h.screenshot()
+
+
+
 
 
 def test_build_character_set_all():
-    test_set = pymatrix.build_character_set(["all"])
+    test_set = pymatrix.build_character_set(["all"], False)
     assert "A" in test_set
     assert "1" in test_set
     assert "*" in test_set
     assert "a" in test_set
-    assert chr(199) in test_set
+    assert "§" in test_set
     assert "ﾃ" in test_set
     assert "ｼ" in test_set
     assert "ﾈ" in test_set
 
 
+def test_build_character_set_test_all():
+    test_set = pymatrix.build_character_set(["all"], True)
+    assert "T" in test_set
+    assert "ﾎ" in test_set
+    assert "Ä" in test_set
+    assert "A" not in test_set
+    assert "1" not in test_set
+    assert "*" not in test_set
+    assert "a" not in test_set
+    assert "§" not in test_set
+    assert "ﾃ" not in test_set
+    assert "ｼ" not in test_set
+
+
 def test_build_character_set_zero():
-    test_set = pymatrix.build_character_set(["zero"])
+    test_set = pymatrix.build_character_set(["zero"], False)
     assert "1" in test_set
     assert "0" in test_set
     assert "B" not in test_set
     assert "$" not in test_set
-    assert chr(199) not in test_set
+    assert "§" not in test_set
+    assert "ﾎ" not in test_set
 
 
-def test_build_character_set_test():
-    test_set = pymatrix.build_character_set(["test"])
+def test_build_character_set_test_char():
+    test_set = pymatrix.build_character_set(["char"], True)
     assert "T" in test_set
-    assert chr(35) in test_set
+    assert "Ä" not in test_set
+    assert "ﾎ" not in test_set
     assert "r" not in test_set
     assert "@" not in test_set
     assert "9" not in test_set
-    assert chr(199) not in test_set
+
+
+def test_build_character_set_test_ext():
+    test_set = pymatrix.build_character_set(["ext"], True)
+    assert "Ä" in test_set
+    assert "ﾎ" not in test_set
+    assert "r" not in test_set
+    assert "@" not in test_set
+    assert "9" not in test_set
+    assert "T" not in test_set
+
+
+def test_build_character_set_test_katakana():
+    test_set = pymatrix.build_character_set(["katakana"], True)
+    assert "ﾎ" in test_set
+    assert "0" in test_set
+    assert "r" not in test_set
+    assert "@" not in test_set
+    assert "9" not in test_set
+    assert "T" not in test_set
+    assert "Ä" not in test_set
 
 
 def test_build_character_set_char():
-    test_set = pymatrix.build_character_set(["char"])
+    test_set = pymatrix.build_character_set(["char"], False)
     assert "A" in test_set
     assert "1" in test_set
     assert "#" in test_set
     assert "a" in test_set
-    assert chr(199) not in test_set
+    assert "§" not in test_set
+    assert "ﾎ" not in test_set
 
 
 def test_build_character_set_ext():
-    test_set = pymatrix.build_character_set(["ext"])
+    test_set = pymatrix.build_character_set(["ext"], False)
+    assert "§" in test_set
     assert "A" not in test_set
     assert "1" not in test_set
     assert ")" not in test_set
     assert "a" not in test_set
-    assert chr(199) in test_set
+    assert "ﾎ" not in test_set
 
 
 def test_build_character_set_katakana_only():
-    test_set = pymatrix.build_character_set(["katakana"])
+    test_set = pymatrix.build_character_set(["katakana"], False)
     assert "A" not in test_set
     assert "T" not in test_set
     assert "(" not in test_set
@@ -857,7 +1151,7 @@ def test_build_character_set_katakana_only():
 
 
 def test_build_character_set_katakana_and_char():
-    test_set = pymatrix.build_character_set(["char", "katakana"])
+    test_set = pymatrix.build_character_set(["char", "katakana"], False)
     assert "ś" not in test_set
     assert "å" not in test_set
     assert "A" in test_set
@@ -869,8 +1163,23 @@ def test_build_character_set_katakana_and_char():
     assert "ﾒ" in test_set
 
 
+def test_build_character_set_test_katakana_and_char():
+    test_set = pymatrix.build_character_set(["char", "katakana"], True)
+    assert "ﾎ" in test_set
+    assert "T" in test_set
+    assert "ś" not in test_set
+    assert "å" not in test_set
+    assert "A" not in test_set
+    assert "1" not in test_set
+    assert "(" not in test_set
+    assert "g" not in test_set
+    assert "ｳ" not in test_set
+    assert "ﾒ" not in test_set
+    assert "Ä" not in test_set
+
+
 def test_build_character_set_katakana_and_ext():
-    test_set = pymatrix.build_character_set(["ext", "katakana"])
+    test_set = pymatrix.build_character_set(["ext", "katakana"], False)
     assert "A" not in test_set
     assert "1" not in test_set
     assert "T" not in test_set
@@ -882,8 +1191,23 @@ def test_build_character_set_katakana_and_ext():
     assert "ﾒ" in test_set
 
 
+def test_build_character_set_test_katakana_and_ext():
+    test_set = pymatrix.build_character_set(["ext", "katakana"], True)
+    assert "Ä" in test_set
+    assert "ﾎ" in test_set
+    assert "A" not in test_set
+    assert "1" not in test_set
+    assert "T" not in test_set
+    assert "(" not in test_set
+    assert "g" not in test_set
+    assert "ś" not in test_set
+    assert "å" not in test_set
+    assert "ｳ" not in test_set
+    assert "ﾒ" not in test_set
+
+
 def test_build_character_set_katakana_char_and_ext():
-    test_set = pymatrix.build_character_set(["ext", "katakana", "char"])
+    test_set = pymatrix.build_character_set(["ext", "katakana", "char"], False)
     assert "A" in test_set
     assert "1" in test_set
     assert "T" in test_set
@@ -893,6 +1217,21 @@ def test_build_character_set_katakana_char_and_ext():
     assert "å" in test_set
     assert "ｳ" in test_set
     assert "ﾒ" in test_set
+
+
+def test_build_character_set_test_katakana_char_and_ext():
+    test_set = pymatrix.build_character_set(["ext", "katakana", "char"], True)
+    assert "T" in test_set
+    assert "Ä" in test_set
+    assert "ﾎ" in test_set
+    assert "A" not in test_set
+    assert "1" not in test_set
+    assert "(" not in test_set
+    assert "g" not in test_set
+    assert "ś" not in test_set
+    assert "å" not in test_set
+    assert "ｳ" not in test_set
+    assert "ﾒ" not in test_set
 
 
 def test_pymatrix_main_list_colors(capsys):
