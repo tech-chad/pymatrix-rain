@@ -171,33 +171,44 @@ class SingleLine:
             return False
 
 
-def build_character_set(sets: list) -> list:
-    # char = CHAR_LIST, ext = EXT_CHAR_LIST, all = all, test = "T" & chr(35)
-    # zero = 0 and 1,
+def build_character_set(sets: list, test_mode: bool) -> list:
+    # char = CHAR_LIST, ext = EXT_CHAR_LIST, all = all,
+    # zero = 0 and 1
     char_set = []
     if sets[0] == "all":
-        char_set.extend(CHAR_LIST)
-        char_set.extend(EXT_CHAR_LIST)
-        char_set.extend(KATAKANA_CHAR_LIST)
+        if test_mode:
+            char_set.extend(["T", "Ä", "ﾎ"])
+        else:
+            char_set.extend(CHAR_LIST)
+            char_set.extend(EXT_CHAR_LIST)
+            char_set.extend(KATAKANA_CHAR_LIST)
         return char_set
     elif sets[0] == "zero":
         char_set.extend(["0", "1"])
         return char_set
-    elif sets[0] == "test":
-        char_set.extend(["T", chr(35)])
-        return char_set
     elif len(sets) == 1 and sets[0] == "katakana":
-        char_set.extend(KATAKANA_CHAR_LIST)
-        char_set.extend(KATAKANA_CHAR_LIST_ADDON)
+        if test_mode:
+            char_set.extend(["ﾎ", "0"])
+        else:
+            char_set.extend(KATAKANA_CHAR_LIST)
+            char_set.extend(KATAKANA_CHAR_LIST_ADDON)
         return char_set
-
     for s in sets:
         if s == "char":
-            char_set.extend(CHAR_LIST)
+            if test_mode:
+                char_set.extend(["T"])
+            else:
+                char_set.extend(CHAR_LIST)
         elif s == "ext":
-            char_set.extend(EXT_CHAR_LIST)
+            if test_mode:
+                char_set.extend(["Ä"])
+            else:
+                char_set.extend(EXT_CHAR_LIST)
         elif s == "katakana":
-            char_set.extend(KATAKANA_CHAR_LIST)
+            if test_mode:
+                char_set.extend(["ﾎ"])
+            else:
+                char_set.extend(KATAKANA_CHAR_LIST)
 
     return char_set
 
@@ -224,21 +235,19 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
     else:
         direction = "down"
     if args.ext and args.katakana:
-        char_set = build_character_set(["ext", "char", "katakana"])
+        char_set = build_character_set(["ext", "char", "katakana"], args.test_mode)
     elif args.katakana:
-        char_set = build_character_set(["char", "katakana"])
+        char_set = build_character_set(["char", "katakana"], args.test_mode)
     elif args.ext:
-        char_set = build_character_set(["ext", "char"])
+        char_set = build_character_set(["ext", "char"], args.test_mode)
     elif args.Katakana_only:
-        char_set = build_character_set(["katakana"])
+        char_set = build_character_set(["katakana"], args.test_mode)
     elif args.ext_only:
-        char_set = build_character_set(["ext"])
-    elif args.test_mode or args.test_mode_ext:
-        char_set = build_character_set(["test"])
+        char_set = build_character_set(["ext"], args.test_mode)
     elif args.zero_one:
-        char_set = build_character_set(["zero"])
+        char_set = build_character_set(["zero"], args.test_mode)
     else:
-        char_set = build_character_set(["char"])
+        char_set = build_character_set(["char"], args.test_mode)
 
     wake_up_time = 20 if args.test_mode else random.randint(2000, 3000)
 
@@ -436,26 +445,23 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             args.zero_one = False
             if args.ext or args.ext_only:
                 args.ext = False
-                char_set = build_character_set(["char"])
+                char_set = build_character_set(["char"], args.test_mode)
             else:
                 args.ext = True
-                char_set = build_character_set(["ext", "char"])
+                char_set = build_character_set(["ext", "char"], args.test_mode)
         elif ch == 69:  # E
             args.zero_one = False
             if args.ext_only:
                 args.ext_only = False
-                char_set = build_character_set(["ext", "char"])
+                char_set = build_character_set(["ext", "char"], args.test_mode)
             else:
                 args.ext_only = True
-                char_set = build_character_set(["ext"])
+                char_set = build_character_set(["ext"], args.test_mode)
         elif ch == 122 and not args.zero_one:  # z
-            char_set = build_character_set(["zero"])
+            char_set = build_character_set(["zero"], args.test_mode)
             args.zero_one = True
         elif ch == 90 and args.zero_one:  # Z
-            if args.test_mode:
-                char_set = build_character_set(["test"])
-            else:
-                char_set = build_character_set(["char"])
+            char_set = build_character_set(["char"], args.test_mode)
             args.zero_one = False
         elif ch == 23:  # ctrl-w
             args.wakeup = not args.wakeup
@@ -482,7 +488,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             color_mode = "normal"
             args.async_scroll = False
             args.delay = 4
-            char_set = build_character_set(["char"])
+            char_set = build_character_set(["char"], args.test_mode)
             args.Katakana_only = False
             args.katakana = False
             direction = "down"
@@ -526,19 +532,19 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
         elif ch == 75:  # K
             args.zero_one = False
             if args.Katakana_only:
-                char_set = build_character_set(["char"])
+                char_set = build_character_set(["char"], args.test_mode)
                 args.Katakana_only = False
             else:
                 args.Katakana_only = True
-                char_set = build_character_set(["katakana"])
+                char_set = build_character_set(["katakana"], args.test_mode)
         elif ch == 107:  # k
             args.zero_one = False
             if args.katakana:
                 args.katakana = False
-                char_set = build_character_set(["char"])
+                char_set = build_character_set(["char"], args.test_mode)
             else:
                 args.katakana = True
-                char_set = build_character_set(["char", "katakana"])
+                char_set = build_character_set(["char", "katakana"], args.test_mode)
 
     screen.erase()
     screen.refresh()
@@ -790,8 +796,8 @@ def argument_parsing(
                         help=argparse.SUPPRESS)
     parser.add_argument("--test_mode", action="store_true",
                         help=argparse.SUPPRESS)
-    parser.add_argument("--test_mode_ext", action="store_true",
-                        help=argparse.SUPPRESS)
+    # parser.add_argument("--test_mode_ext", action="store_true",
+    #                     help=argparse.SUPPRESS)
     return parser.parse_args(argv)
 
 

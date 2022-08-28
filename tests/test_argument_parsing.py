@@ -22,12 +22,12 @@ def test_argument_parsing_test_mode(test_values, expected_results):
     assert result.test_mode == expected_results
 
 
-@pytest.mark.parametrize("test_values, expected_results", [
-    ([], False), (["--test_mode_ext"], True)
-])
-def test_argument_parsing_test_mode_ext(test_values, expected_results):
-    result = pymatrix.argument_parsing(test_values)
-    assert result.test_mode_ext == expected_results
+# @pytest.mark.parametrize("test_values, expected_results", [
+#     ([], False), (["--test_mode_ext"], True)
+# ])
+# def test_argument_parsing_test_mode_ext(test_values, expected_results):
+#     result = pymatrix.argument_parsing(test_values)
+#     assert result.test_mode_ext == expected_results
 
 
 @pytest.mark.parametrize("test_values, expected_results", [
@@ -125,7 +125,8 @@ def test_argument_parsing_multiple_color_mode(test_values, expected_results):
 @pytest.mark.parametrize("test_values, expected_results", [
     ([], False), (["-M"], True)
 ])
-def test_argument_parsing_multiple_random_color_mode(test_values, expected_results):
+def test_argument_parsing_multiple_random_color_mode(test_values,
+                                                     expected_results):
     result = pymatrix.argument_parsing(test_values)
     assert result.random_mode == expected_results
 
