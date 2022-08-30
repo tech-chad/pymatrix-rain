@@ -1045,37 +1045,12 @@ def test_delay_keys():
             assert sc != h.screenshot()
 
 
-
-
-
-def test_build_character_set_all():
-    test_set = pymatrix.build_character_set(["all"], False)
-    assert "A" in test_set
-    assert "1" in test_set
-    assert "*" in test_set
-    assert "a" in test_set
-    assert "§" in test_set
-    assert "ﾃ" in test_set
-    assert "ｼ" in test_set
-    assert "ﾈ" in test_set
-
-
-def test_build_character_set_test_all():
-    test_set = pymatrix.build_character_set(["all"], True)
-    assert "T" in test_set
-    assert "ﾎ" in test_set
-    assert "Ä" in test_set
-    assert "A" not in test_set
-    assert "1" not in test_set
-    assert "*" not in test_set
-    assert "a" not in test_set
-    assert "§" not in test_set
-    assert "ﾃ" not in test_set
-    assert "ｼ" not in test_set
-
-
 def test_build_character_set_zero():
-    test_set = pymatrix.build_character_set(["zero"], False)
+    args = pymatrix.argparse.Namespace(
+        ext=False, ext_only=False, katakana=False, Katakana_only=False,
+        zero_one=True, test_mode=False
+    )
+    test_set = pymatrix.build_character_set2(args)
     assert "1" in test_set
     assert "0" in test_set
     assert "B" not in test_set
@@ -1085,38 +1060,38 @@ def test_build_character_set_zero():
 
 
 def test_build_character_set_test_char():
-    test_set = pymatrix.build_character_set(["char"], True)
-    assert "T" in test_set
-    assert "Ä" not in test_set
-    assert "ﾎ" not in test_set
-    assert "r" not in test_set
-    assert "@" not in test_set
-    assert "9" not in test_set
+    args = pymatrix.argparse.Namespace(
+        ext=False, ext_only=False, katakana=False, Katakana_only=False,
+        zero_one=False, test_mode=True
+    )
+    test_set = pymatrix.build_character_set2(args)
+    assert test_set == ["T"]
 
 
 def test_build_character_set_test_ext():
-    test_set = pymatrix.build_character_set(["ext"], True)
-    assert "Ä" in test_set
-    assert "ﾎ" not in test_set
-    assert "r" not in test_set
-    assert "@" not in test_set
-    assert "9" not in test_set
-    assert "T" not in test_set
+    args = pymatrix.argparse.Namespace(
+        ext=True, ext_only=False, katakana=False, Katakana_only=False,
+        zero_one=False, test_mode=True
+    )
+    test_set = pymatrix.build_character_set2(args)
+    assert test_set == ["Ä", "T"]
 
 
-def test_build_character_set_test_katakana():
-    test_set = pymatrix.build_character_set(["katakana"], True)
-    assert "ﾎ" in test_set
-    assert "0" in test_set
-    assert "r" not in test_set
-    assert "@" not in test_set
-    assert "9" not in test_set
-    assert "T" not in test_set
-    assert "Ä" not in test_set
+def test_build_character_set_test_katakana_only():
+    args = pymatrix.argparse.Namespace(
+        ext=False, ext_only=False, katakana=False, Katakana_only=True,
+        zero_one=False, test_mode=True
+    )
+    test_set = pymatrix.build_character_set2(args)
+    assert test_set == ["ﾎ", "0"]
 
 
-def test_build_character_set_char():
-    test_set = pymatrix.build_character_set(["char"], False)
+def test_build_character_set_char_normal():
+    args = pymatrix.argparse.Namespace(
+        ext=False, ext_only=False, katakana=False, Katakana_only=False,
+        zero_one=False, test_mode=False
+    )
+    test_set = pymatrix.build_character_set2(args)
     assert "A" in test_set
     assert "1" in test_set
     assert "#" in test_set
@@ -1125,8 +1100,12 @@ def test_build_character_set_char():
     assert "ﾎ" not in test_set
 
 
-def test_build_character_set_ext():
-    test_set = pymatrix.build_character_set(["ext"], False)
+def test_build_character_set_ext_only():
+    args = pymatrix.argparse.Namespace(
+        ext=False, ext_only=True, katakana=False, Katakana_only=False,
+        zero_one=False, test_mode=False
+    )
+    test_set = pymatrix.build_character_set2(args)
     assert "§" in test_set
     assert "A" not in test_set
     assert "1" not in test_set
@@ -1135,8 +1114,35 @@ def test_build_character_set_ext():
     assert "ﾎ" not in test_set
 
 
+def test_build_character_set_test_ext_only():
+    args = pymatrix.argparse.Namespace(
+        ext=False, ext_only=True, katakana=False, Katakana_only=False,
+        zero_one=False, test_mode=True
+    )
+    test_set = pymatrix.build_character_set2(args)
+    assert test_set == ["Ä"]
+
+
+def test_build_character_set_ext_and_char():
+    args = pymatrix.argparse.Namespace(
+        ext=True, ext_only=False, katakana=False, Katakana_only=False,
+        zero_one=False, test_mode=False
+    )
+    test_set = pymatrix.build_character_set2(args)
+    assert "§" in test_set
+    assert "A" in test_set
+    assert "1" in test_set
+    assert ")" in test_set
+    assert "a" in test_set
+    assert "ﾎ" not in test_set
+
+
 def test_build_character_set_katakana_only():
-    test_set = pymatrix.build_character_set(["katakana"], False)
+    args = pymatrix.argparse.Namespace(
+        ext=False, ext_only=False, katakana=False, Katakana_only=True,
+        zero_one=False, test_mode=False
+    )
+    test_set = pymatrix.build_character_set2(args)
     assert "A" not in test_set
     assert "T" not in test_set
     assert "(" not in test_set
@@ -1151,7 +1157,11 @@ def test_build_character_set_katakana_only():
 
 
 def test_build_character_set_katakana_and_char():
-    test_set = pymatrix.build_character_set(["char", "katakana"], False)
+    args = pymatrix.argparse.Namespace(
+        ext=False, ext_only=False, katakana=True, Katakana_only=False,
+        zero_one=False, test_mode=False
+    )
+    test_set = pymatrix.build_character_set2(args)
     assert "ś" not in test_set
     assert "å" not in test_set
     assert "A" in test_set
@@ -1161,53 +1171,24 @@ def test_build_character_set_katakana_and_char():
     assert "g" in test_set
     assert "ｳ" in test_set
     assert "ﾒ" in test_set
+    assert test_set.count("0") == 1
 
 
 def test_build_character_set_test_katakana_and_char():
-    test_set = pymatrix.build_character_set(["char", "katakana"], True)
-    assert "ﾎ" in test_set
-    assert "T" in test_set
-    assert "ś" not in test_set
-    assert "å" not in test_set
-    assert "A" not in test_set
-    assert "1" not in test_set
-    assert "(" not in test_set
-    assert "g" not in test_set
-    assert "ｳ" not in test_set
-    assert "ﾒ" not in test_set
-    assert "Ä" not in test_set
-
-
-def test_build_character_set_katakana_and_ext():
-    test_set = pymatrix.build_character_set(["ext", "katakana"], False)
-    assert "A" not in test_set
-    assert "1" not in test_set
-    assert "T" not in test_set
-    assert "(" not in test_set
-    assert "g" not in test_set
-    assert "ś" in test_set
-    assert "å" in test_set
-    assert "ｳ" in test_set
-    assert "ﾒ" in test_set
-
-
-def test_build_character_set_test_katakana_and_ext():
-    test_set = pymatrix.build_character_set(["ext", "katakana"], True)
-    assert "Ä" in test_set
-    assert "ﾎ" in test_set
-    assert "A" not in test_set
-    assert "1" not in test_set
-    assert "T" not in test_set
-    assert "(" not in test_set
-    assert "g" not in test_set
-    assert "ś" not in test_set
-    assert "å" not in test_set
-    assert "ｳ" not in test_set
-    assert "ﾒ" not in test_set
+    args = pymatrix.argparse.Namespace(
+        ext=False, ext_only=False, katakana=True, Katakana_only=False,
+        zero_one=False, test_mode=True
+    )
+    test_set = pymatrix.build_character_set2(args)
+    assert test_set == ["T", "ﾎ"]
 
 
 def test_build_character_set_katakana_char_and_ext():
-    test_set = pymatrix.build_character_set(["ext", "katakana", "char"], False)
+    args = pymatrix.argparse.Namespace(
+        ext=True, ext_only=False, katakana=True, Katakana_only=False,
+        zero_one=False, test_mode=False
+    )
+    test_set = pymatrix.build_character_set2(args)
     assert "A" in test_set
     assert "1" in test_set
     assert "T" in test_set
@@ -1220,18 +1201,12 @@ def test_build_character_set_katakana_char_and_ext():
 
 
 def test_build_character_set_test_katakana_char_and_ext():
-    test_set = pymatrix.build_character_set(["ext", "katakana", "char"], True)
-    assert "T" in test_set
-    assert "Ä" in test_set
-    assert "ﾎ" in test_set
-    assert "A" not in test_set
-    assert "1" not in test_set
-    assert "(" not in test_set
-    assert "g" not in test_set
-    assert "ś" not in test_set
-    assert "å" not in test_set
-    assert "ｳ" not in test_set
-    assert "ﾒ" not in test_set
+    args = pymatrix.argparse.Namespace(
+        ext=True, ext_only=False, katakana=True, Katakana_only=False,
+        zero_one=False, test_mode=True
+    )
+    test_set = pymatrix.build_character_set2(args)
+    assert test_set == ["T", "ﾎ", "Ä"]
 
 
 def test_pymatrix_main_list_colors(capsys):
