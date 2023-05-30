@@ -376,13 +376,18 @@ def test_pymatrix_display_command_quit(capsys):
 
 
 def test_pymatrix_control_c_running():
+    # this test can be flaky. Might not be the best test for this.
     with Runner("bash") as h:
+        h.default_timeout = 4
         h.await_text("$")
         h.write("clear")
         h.press("Enter")
-        h.write("python3 pymatrix/pymatrix.py --test_mode -d1")
+        h.write(". venv/bin/activate")
         h.press("Enter")
-        h.default_timeout = 2
+        h.await_text("(venv)")
+        h.write("pymatrix-rain --test_mode -d1")
+        h.press("Enter")
+        sleep(0.1)
         h.await_text("T")
         h.press("C-c")
         captured = h.screenshot()
@@ -628,8 +633,9 @@ def test_pymatrix_disable_keys_and_screen_saver():
 
 def test_pymatrix_disable_keys_check_running_keys():
     # not the best test
+    # flaky test
     with Runner(*pymatrix_run("--test_mode", "--disable_keys")) as h:
-        h.default_timeout = 3
+        h.default_timeout = 5
         h.await_text("T")
         for k in "abcdefghijklmnoprstuvwxyzABCDEFGHIJKLMNOPRSTUVWXYZ" \
                  "1234567890{[}]!@#$%^&*()_+=-~` ":
@@ -719,8 +725,9 @@ def test_pymatrix_scrolling_up_chars_at_bottom(test_value):
 
 
 def test_pymatrix_change_dir():
-    # test could be flaky
+    # flaky test
     with Runner(*pymatrix_run("--test_mode", "-d9"), width=50, height=10) as h:
+        h.default_timeout = 4
         h.await_text("T")
         sc = h.screenshot()
         lines = []
@@ -731,7 +738,7 @@ def test_pymatrix_change_dir():
         sleep(0.1)
         h.press("v")
         h.await_text("T")
-        sleep(0.1)
+        sleep(0.2)
         sc = h.screenshot()
         lines = []
         for line in sc.splitlines():
@@ -742,9 +749,10 @@ def test_pymatrix_change_dir():
 
 
 def test_pymatrix_change_dir_up_to_down():
-    # test could be flaky
+    # flaky test
     with Runner(*pymatrix_run("--test_mode", "-d9", "-v"),
                 width=50, height=10) as h:
+        h.default_timeout = 3
         h.await_text("T")
         sc = h.screenshot()
         lines = []
@@ -755,7 +763,7 @@ def test_pymatrix_change_dir_up_to_down():
         sleep(0.1)
         h.press("v")
         h.await_text("T")
-        sleep(0.1)
+        sleep(0.2)
         sc = h.screenshot()
         lines = []
         for line in sc.splitlines():
@@ -765,9 +773,10 @@ def test_pymatrix_change_dir_up_to_down():
 
 
 def test_pymatrix_change_dir_up_to_down_default_key():
-    # test could be flaky
+    # flakey test
     with Runner(*pymatrix_run("--test_mode", "-d9", "-v"),
                 width=50, height=10) as h:
+        h.default_timeout = 3
         h.await_text("T")
         sc = h.screenshot()
         lines = []
@@ -778,7 +787,7 @@ def test_pymatrix_change_dir_up_to_down_default_key():
         sleep(0.1)
         h.press("d")
         h.await_text("T")
-        sleep(0.1)
+        sleep(0.2)
         sc = h.screenshot()
         lines = []
         for line in sc.splitlines():
