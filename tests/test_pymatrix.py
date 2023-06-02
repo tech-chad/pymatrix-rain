@@ -686,6 +686,18 @@ def test_pymatrix_freeze_no_other_keys():
         assert h.screenshot() == sc
 
 
+def test_pymatrix_freeze_scroll_right():
+    with Runner(*pymatrix_run("--test_mode", "--scroll_right"),
+                width=30, height=30) as h:
+        h.default_timeout = 2
+        h.await_text("T")
+        h.write("f")
+        sleep(0.05)
+        sc = h.screenshot()
+        sleep(1)
+        assert h.screenshot() == sc
+
+
 @pytest.mark.parametrize("test_value", ["-v", "--reverse"])
 def test_pymatrix_reverse(test_value):
     with Runner(*pymatrix_run("--test_mode", test_value),
@@ -698,6 +710,125 @@ def test_pymatrix_reverse_key():
         h.await_text("T")
         h.press("v")
         h.await_text("T")
+
+
+def test_pymatrix_scroll_right_command_line():
+    with Runner(*pymatrix_run("--test_mode", "--scroll_right"),
+                width=20, height=30) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        sleep(0.1)
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        column_left = []
+        for line in lines:
+            if len(line) == 0:
+                continue
+            column_left.append(line[0])
+        assert "T" in column_left
+
+
+def test_pymatrix_scroll_left_command_line():
+    with Runner(*pymatrix_run("--test_mode", "--scroll_left"),
+                width=20, height=30) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        sleep(0.1)
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        column_left = []
+        column_right = []
+        for line in lines:
+            if len(line) == 0:
+                continue
+            column_left.append(line[0])
+            column_right.append(line[18])
+        assert "T" in column_right
+        assert "T" not in column_left
+
+
+def test_pymatrix_change_direction_from_down_to_right():
+    # flaky test
+    with Runner(*pymatrix_run("--test_mode"), width=50, height=10) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        sleep(0.1)
+        h.press("Right")
+        sleep(0.3)
+        h.await_text("T")
+        sleep(0.1)
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        column_left = []
+        for line in lines:
+            if len(line) == 0:
+                continue
+            column_left.append(line[0])
+        assert "T" in column_left
+
+
+def test_pymatrix_change_direction_from_down_to_left():
+    with Runner(*pymatrix_run("--test_mode"), width=20, height=30) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        sleep(0.1)
+        h.press("Left")
+        sleep(0.3)
+        h.await_text("T")
+        sleep(0.1)
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        column_left = []
+        column_right = []
+        for line in lines:
+            if len(line) == 0:
+                continue
+            column_left.append(line[0])
+            column_right.append(line[18])
+        assert "T" in column_right
+        assert "T" not in column_left
+
+
+def test_pymartix_change_direction_from_right_to_down():
+    with Runner(*pymatrix_run("--test_mode", "--scroll_right"),
+                width=20, height=30) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        sleep(0.1)
+        h.press("Down")
+        sleep(0.3)
+        h.await_text("T")
+        sleep(0.1)
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        assert "T" in lines[0] or "T" in lines[1]
+
+
+def test_pymatrix_scroll_right_default_key():
+    with Runner(*pymatrix_run("--test_mode", "--scroll_right"),
+                width=20, height=30) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        sleep(0.1)
+        h.press("d")
+        sleep(0.3)
+        h.await_text("T")
+        sleep(0.1)
+        sc = h.screenshot()
+        lines = []
+        for line in sc.splitlines():
+            lines.append(line)
+        assert "T" in lines[0] or "T" in lines[1]
 
 
 def test_pymatrix_normal_char_at_top():

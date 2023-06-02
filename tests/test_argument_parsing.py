@@ -251,6 +251,22 @@ def test_argument_parsing_katakana(test_value, expected_result):
     assert result.katakana == expected_result
 
 
+@pytest.mark.parametrize("test_value, expected_result", [
+    ([], False), (["--scroll_right"], True),
+])
+def test_argument_parsing_scroll_right(test_value, expected_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.scroll_right == expected_result
+
+
+@pytest.mark.parametrize("test_value, expected_result", [
+    ([], False), (["--scroll_left"], True),
+])
+def test_argument_parsing_scroll_right(test_value, expected_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.scroll_left == expected_result
+
+
 # testing helper functions
 @pytest.mark.parametrize("test_values, expected_results", [
     ("0", 0), ("1", 1), ("2", 2), ("3", 3), ("4", 4),
