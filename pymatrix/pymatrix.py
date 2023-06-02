@@ -79,9 +79,10 @@ class PyMatrixError(Exception):
 
 
 class SingleLine:
-    def __init__(self, x: int, height: int, direction: str):
+    def __init__(self, y: int, x: int, width: int, height: int, direction: str):
         self.direction = direction
         self.height = height - 2
+        self.width = width - 1
         self.async_scroll_count = 0
         self.async_scroll_rate = random.randint(0, 4)
         self.line_color_number = random.randint(1, 7)  # keep for now
@@ -97,6 +98,22 @@ class SingleLine:
             self.x = x
             length = random.randint(3, height - 3)
             self.last_y = height - 3 + length
+        elif direction == "right":
+            self.lead_x = 0
+            self.x = -1
+            length = random.randint(3, width - 3)
+            self.last_x = -length
+            self.y = y
+            self.lead_y = 0
+            self.last_y = 0
+        elif direction == "left":
+            self.lead_x = width - 2
+            self.x = width - 1
+            length = random.randint(3, width - 3)
+            self.last_x = width - 2 + length
+            self.y = y
+            self.lead_y = 0
+            self.last_y = 0
 
     def get_lead(self) -> Union[Tuple[int, int], None]:
         if self.direction == "down":
@@ -113,6 +130,20 @@ class SingleLine:
                 lead_y = self.lead_y
                 self.lead_y -= 1
                 return lead_y, self.x
+        elif self.direction == "right":
+            if self.lead_x >= self.width:
+                return None
+            else:
+                lead_x = self.lead_x
+                self.lead_x += 1
+                return self.y, lead_x
+        elif self.direction == "left":
+            if self.lead_x < 0:
+                return None
+            else:
+                lead_x = self.lead_x
+                self.lead_x -= 1
+                return self.y, lead_x
 
     def get_next(self) -> Union[Tuple[int, int], None]:
         if self.direction == "down":
@@ -131,6 +162,20 @@ class SingleLine:
                 y = self.y
                 self.y -= 1
                 return y, self.x
+        elif self.direction == "right":
+            if self.x < 0 or self.x >= self.width:
+                self.x += 1
+                return None
+            x = self.x
+            self.x += 1
+            return self.y, x
+        elif self.direction == "left":
+            if self.x >= self.width or self.x < 0:
+                self.x -= 1
+                return None
+            x = self.x
+            self.x -= 1
+            return self.y, x
 
     def delete_last(self) -> Union[Tuple[int, int], None]:
         if self.direction == "down":
@@ -149,6 +194,22 @@ class SingleLine:
                 last_y = self.last_y
                 self.last_y -= 1
                 return last_y, self.x
+        elif self.direction == "right":
+            if self.last_x < 0 or self.last_x >= self.width:
+                self.last_x += 1
+                return None
+            else:
+                last_x = self.last_x
+                self.last_x += 1
+                return self.y, last_x
+        elif self.direction == "left":
+            if self.last_x >= self.width:
+                self.last_x -= 1
+                return None
+            else:
+                last_x = self.last_x
+                self.last_x -= 1
+                return self.y, last_x
 
     def okay_to_delete(self) -> bool:
         if self.direction == "down":
@@ -158,6 +219,16 @@ class SingleLine:
                 return False
         elif self.direction == "up":
             if self.last_y < 0:
+                return True
+            else:
+                return False
+        elif self.direction == "right":
+            if self.last_x >= self.width:
+                return True
+            else:
+                return False
+        elif self.direction == "left":
+            if self.last_x < 0:
                 return True
             else:
                 return False
@@ -219,6 +290,10 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
     keys_pressed = 0
     if args.reverse:
         direction = "up"
+    elif args.scroll_right:
+        direction = "right"
+    elif args.scroll_left:
+        direction = "left"
     else:
         direction = "down"
 
@@ -243,16 +318,21 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
     if size_x < MIN_SCREEN_SIZE_X:
         raise PyMatrixError("Error screen width is to narrow.")
     x_list = [x for x in range(0, size_x, spacer)]
+    y_list = [y for y in range(1, size_y)]
 
     time_delta = datetime.timedelta(seconds=args.run_timer)
     end_time = datetime.datetime.now() + time_delta
     while True:
         remove_list = []
-        if len(line_list) < size_x - 1 and len(x_list) > 3:
-            for _ in range(2):
-                x = random.choice(x_list)
-                x_list.pop(x_list.index(x))
-                line_list.append(SingleLine(x, size_y, direction))
+        if direction == "right" or direction == "left":
+            y = random.choice(y_list)
+            line_list.append(SingleLine(y, 0, size_x, size_y, direction))
+        else:
+            if len(line_list) < size_x - 1 and len(x_list) > 3:
+                for _ in range(2):
+                    x = random.choice(x_list)
+                    x_list.pop(x_list.index(x))
+                    line_list.append(SingleLine(0, x, size_x, size_y, direction))
 
         resize = curses.is_term_resized(size_y, size_x)
         if resize is True:
@@ -262,6 +342,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             if size_x < MIN_SCREEN_SIZE_X:
                 raise PyMatrixError("Error screen width is to narrow.")
             x_list = [x for x in range(0, size_x, spacer)]
+            y_list = [y for y in range(0, size_y)]
 
             line_list.clear()
             screen.clear()
@@ -407,6 +488,8 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             else:
                 color_mode = "normal"
         elif ch == 108:  # l
+            if direction == "right" or direction == "left":
+                continue
             if spacer == 1:
                 spacer = 2
                 x_list = [x for x in range(0, size_x, spacer)]
@@ -437,6 +520,8 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             args.wakeup = not args.wakeup
         elif ch == 118:  # v
             args.reverse = not args.reverse
+            x_list = [x for x in range(0, size_x, spacer)]
+            args.scroll_right = False
             if direction == "down":
                 direction = "up"
             else:
@@ -444,6 +529,48 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             line_list.clear()
             screen.clear()
             screen.refresh()
+        elif ch == 261:  # right arrow
+            if not args.scroll_right:
+                args.scroll_right = True
+                args.scroll_left = False
+                args.reverse = False
+                direction = "right"
+                line_list.clear()
+                screen.clear()
+                screen.refresh()
+                time.sleep(0.4)
+                y_list = [y for y in range(1, size_y)]
+        elif ch == 260:  # left arrow
+            if not args.scroll_left:
+                args.scroll_left = True
+                args.scroll_right = False
+                args.reverse = False
+                direction = "left"
+                line_list.clear()
+                screen.clear()
+                screen.refresh()
+                time.sleep(0.4)
+                y_list = [y for y in range(1, size_y)]
+        elif ch == 259:  # up arrow
+            if not args.reverse:
+                args.reverse = True
+                args.scroll_right = False
+                direction = "up"
+                line_list.clear()
+                screen.clear()
+                screen.refresh()
+                time.sleep(0.4)
+                x_list = [x for x in range(0, size_x, spacer)]
+        elif ch == 258:  # down arrow
+            if direction != "down":
+                args.reverse = False
+                args.scroll_right = False
+                direction = "down"
+                line_list.clear()
+                screen.clear()
+                screen.refresh()
+                time.sleep(0.3)
+                x_list = [x for x in range(0, size_x, spacer)]
         elif ch in [100, 68]:  # d, D
             args.zero_one = False
             args.bold_on = False
@@ -460,6 +587,14 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             args.delay = 4
             args.Katakana_only = False
             args.katakana = False
+            if direction == "right" or direction == "left":
+                args.scroll_right = False
+                args.scroll_left = False
+                x_list = [x for x in range(0, size_x, spacer)]
+                screen.clear()
+                screen.refresh()
+                line_list.clear()
+                time.sleep(0.2)
             direction = "down"
             args.do_not_clear = False
             args.italic = False
@@ -671,6 +806,10 @@ def display_commands() -> None:
     print("W      Toggle do not clear screen")
     print("w      Clear the screen, wait 2 seconds and restart")
     print("j      Toggle italic text")
+    print("up arrow    Matrix scrolls down to up")
+    print("down arrow  Matrix scrolls up to down (default)")
+    print("right arrow Matrix scrolls from left to right")
+    print("left arrow  Matrix scrolls from right to left")
     print("r,t,y,u,i,o,p,[   Set color")
     print("R,T,Y,U,I,O,P,{   Set lead character color")
     print("ctrl + r,t,y,u,i,o,p,[  Set background color")
@@ -722,6 +861,10 @@ def argument_parsing(
     parser.add_argument("-v", "--reverse", action="store_true",
                         help="Reverse the matrix. "
                              "The matrix scrolls up (vertical)")
+    parser.add_argument("--scroll_right", action="store_true",
+                        help="Matrix scrolls from left to right")
+    parser.add_argument("--scroll_left", action="store_true",
+                        help="Matrix scrolls from right to left")
     parser.add_argument("-j", "--italic", action="store_true",
                         help="Italic characters")
     parser.add_argument("-k", "--katakana", action="store_true",
