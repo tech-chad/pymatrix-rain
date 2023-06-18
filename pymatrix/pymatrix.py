@@ -7,6 +7,7 @@ import random
 import sys
 import time
 
+from typing import List
 from typing import Optional
 from typing import Sequence
 from typing import Tuple
@@ -242,33 +243,94 @@ class SingleLine:
             return False
 
 
+class OldScrollingLine:
+    old_scroll_chr_list = []
+
+    def __init__(self, x: int, width: int, height: int):
+        self.height = height - 2
+        self.width = width - 1
+        self.y = -1
+        self.x = x
+        self.length = random.randint(3, height - 3)
+        self.lead_y = 0
+        self.lead_char = random.choice(OldScrollingLine.old_scroll_chr_list)
+        self.location_list = []
+        self.line_color_number = random.randint(1, 7)
+        self.bold = True if random.randint(1, 3) <= 1 else False
+
+    @classmethod
+    def update_char_list(cls, updated_char_list: List[str]) -> None:
+        OldScrollingLine.old_scroll_chr_list = updated_char_list
+
+    def delete_last(self) -> Union[None, List[int]]:
+        if len(self.location_list) == self.length or self.y >= self.length:
+            return self.location_list[-1][0:2]
+        else:
+            return None
+
+    def get_lead(self) -> Union[Tuple[int, int, str], None]:
+        if self.lead_y <= self.height:
+            lead_y = self.lead_y
+            self.lead_y += 1
+            return lead_y, self.x, self.lead_char
+        else:
+            return None
+
+    def get_next(self) -> List[List]:
+        if len(self.location_list) != 0 and self.y >= 0:
+            for cell in self.location_list:
+                cell[0] += 1
+        if len(self.location_list) < self.length and 0 <= self.y < self.height:
+            self.location_list.append(
+                [0, self.x, random.choice(OldScrollingLine.old_scroll_chr_list)]
+            )
+        if self.y > self.height:
+            self.location_list.pop(0)
+        self.y += 1
+        return self.location_list
+
+    def okay_to_delete(self) -> bool:
+        if len(self.location_list) == 0 and self.y > self.height:
+            return True
+        else:
+            return False
+
+
 def build_character_set2(args: argparse.Namespace):
     if args.zero_one:
-        return ["0", "1"]
+        new_list = ["0", "1"]
     elif args.ext_only:
         if args.test_mode:
-            return ["Ä"]
-        return EXT_CHAR_LIST
+            new_list = ["Ä"]
+        else:
+            new_list = EXT_CHAR_LIST
     elif args.Katakana_only:
         if args.test_mode:
-            return ["ﾎ", "0"]
-        return KATAKANA_CHAR_LIST + KATAKANA_CHAR_LIST_ADDON
+            new_list = ["ﾎ", "0"]
+        else:
+            new_list = KATAKANA_CHAR_LIST + KATAKANA_CHAR_LIST_ADDON
     elif args.katakana and args.ext:
         if args.test_mode:
-            return ["T", "ﾎ", "Ä"]
-        return KATAKANA_CHAR_LIST + EXT_CHAR_LIST + CHAR_LIST
+            new_list = ["T", "ﾎ", "Ä"]
+        else:
+            new_list = KATAKANA_CHAR_LIST + EXT_CHAR_LIST + CHAR_LIST
     elif args.ext:
         if args.test_mode:
-            return ["Ä", "T"]
-        return CHAR_LIST + EXT_CHAR_LIST
+            new_list = ["Ä", "T"]
+        else:
+            new_list = CHAR_LIST + EXT_CHAR_LIST
     elif args.katakana:
         if args.test_mode:
-            return ["T", "ﾎ"]
-        return CHAR_LIST + KATAKANA_CHAR_LIST
+            new_list = ["T", "ﾎ"]
+        else:
+            new_list = CHAR_LIST + KATAKANA_CHAR_LIST
     else:
         if args.test_mode:
-            return ["T"]
-        return CHAR_LIST
+            new_list = ["T"]
+        else:
+            new_list = CHAR_LIST
+    OldScrollingLine.update_char_list(new_list)
+    return new_list
 
 
 def matrix_loop(screen, args: argparse.Namespace) -> None:
@@ -294,6 +356,8 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
         direction = "right"
     elif args.scroll_left:
         direction = "left"
+    elif args.old_school_scrolling:
+        direction = "old scrolling"
     else:
         direction = "down"
 
@@ -332,7 +396,11 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 for _ in range(2):
                     x = random.choice(x_list)
                     x_list.pop(x_list.index(x))
-                    line_list.append(SingleLine(0, x, size_x, size_y, direction))
+                    if direction == "old scrolling":
+                        line_list.append(OldScrollingLine(x, size_x, size_y))
+                    else:
+                        line_list.append(
+                            SingleLine(0, x, size_x, size_y, direction))
 
         resize = curses.is_term_resized(size_y, size_x)
         if resize is True:
@@ -357,47 +425,76 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 cycle = 0 if cycle == 6 else cycle + 1
             else:
                 count -= 1
-
-        for line in line_list:
-            if args.async_scroll and not line.async_scroll_turn():
-                # Not the line's turn in async scroll mode then
-                # continue to the next line.
-                continue
-            remove_line = line.delete_last()
-            if remove_line is not None:
-                if args.do_not_clear is False:
-                    screen.addstr(remove_line[0], remove_line[1], " ")
-                if line.x not in x_list:
-                    x_list.append(line.x)
-
-            if args.bold_all:
-                bold = curses.A_BOLD
-            elif args.bold_on:
-                if random.randint(1, 3) <= 1:
+        if direction == "old scrolling":
+            for line in line_list:
+                if args.bold_all:
+                    bold = curses.A_BOLD
+                elif args.bold_on and line.bold:
                     bold = curses.A_BOLD
                 else:
                     bold = curses.A_NORMAL
-            else:
-                bold = curses.A_NORMAL
 
-            italic = curses.A_ITALIC if args.italic else curses.A_NORMAL
+                italic = curses.A_ITALIC if args.italic else curses.A_NORMAL
 
-            if color_mode == "random":
-                color = curses.color_pair(random.randint(1, 7))
-            else:
                 color = curses.color_pair(line.line_color_number)
-            new_char = line.get_next()
-            if new_char is not None:
-                screen.addstr(new_char[0], new_char[1], random.choice(char_set),
-                              color + bold + italic)
-            lead_char = line.get_lead()
-            if lead_char is not None:
-                screen.addstr(lead_char[0], lead_char[1],
-                              random.choice(char_set),
-                              curses.color_pair(10) + bold + italic)
-            if line.okay_to_delete():
-                remove_list.append(line)
-        screen.refresh()
+                remove = line.delete_last()
+                lead = line.get_lead()
+                if lead is not None:
+                    screen.addstr(lead[0], lead[1], lead[2],
+                                  curses.color_pair(10) + bold + italic)
+                if remove is not None:
+                    screen.addstr(remove[0], remove[1], " ")
+                    if line.x not in x_list:
+                        x_list.append(line.x)
+                location_char_list = line.get_next()
+                for cell in location_char_list:
+                    screen.addstr(*cell, color + bold + italic)
+                okay_to_delete = line.okay_to_delete()
+                if okay_to_delete:
+                    remove_list.append(line)
+        else:
+            for line in line_list:
+                if args.async_scroll and not line.async_scroll_turn():
+                    # Not the line's turn in async scroll mode then
+                    # continue to the next line.
+                    continue
+                remove_line = line.delete_last()
+                if remove_line is not None:
+                    if args.do_not_clear is False:
+                        screen.addstr(remove_line[0], remove_line[1], " ")
+                    if line.x not in x_list:
+                        x_list.append(line.x)
+
+                if args.bold_all:
+                    bold = curses.A_BOLD
+                elif args.bold_on:
+                    if random.randint(1, 3) <= 1:
+                        bold = curses.A_BOLD
+                    else:
+                        bold = curses.A_NORMAL
+                else:
+                    bold = curses.A_NORMAL
+
+                italic = curses.A_ITALIC if args.italic else curses.A_NORMAL
+
+                if color_mode == "random":
+                    color = curses.color_pair(random.randint(1, 7))
+                else:
+                    color = curses.color_pair(line.line_color_number)
+                new_char = line.get_next()
+                if new_char is not None:
+                    screen.addstr(new_char[0],
+                                  new_char[1],
+                                  random.choice(char_set),
+                                  color + bold + italic)
+                lead_char = line.get_lead()
+                if lead_char is not None:
+                    screen.addstr(lead_char[0], lead_char[1],
+                                  random.choice(char_set),
+                                  curses.color_pair(10) + bold + italic)
+                if line.okay_to_delete():
+                    remove_list.append(line)
+            screen.refresh()
 
         for rem in remove_list:
             line_list.pop(line_list.index(rem))
@@ -524,16 +621,33 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             args.scroll_right = False
             if direction == "down":
                 direction = "up"
-            else:
+            elif direction == "up":
                 direction = "down"
+            else:
+                direction = "up"
             line_list.clear()
             screen.clear()
             screen.refresh()
+        elif ch == 115:  # s
+            args.old_school_scrolling = not args.old_school_scrolling
+            if direction == "old scrolling":
+                direction = "down"
+            else:
+                direction = "old scrolling"
+            args.scroll_left = False
+            args.scroll_right = False
+            x_list = [x for x in range(0, size_x, spacer)]
+            screen.clear()
+            screen.refresh()
+            line_list.clear()
+            time.sleep(0.2)
+
         elif ch == 261:  # right arrow
             if not args.scroll_right:
                 args.scroll_right = True
                 args.scroll_left = False
                 args.reverse = False
+                args.old_school_scrolling = False
                 direction = "right"
                 line_list.clear()
                 screen.clear()
@@ -545,6 +659,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 args.scroll_left = True
                 args.scroll_right = False
                 args.reverse = False
+                args.old_school_scrolling = False
                 direction = "left"
                 line_list.clear()
                 screen.clear()
@@ -555,6 +670,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             if not args.reverse:
                 args.reverse = True
                 args.scroll_right = False
+                args.old_school_scrolling = False
                 direction = "up"
                 line_list.clear()
                 screen.clear()
@@ -565,6 +681,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             if direction != "down":
                 args.reverse = False
                 args.scroll_right = False
+                args.old_school_scrolling = False
                 direction = "down"
                 line_list.clear()
                 screen.clear()
@@ -587,6 +704,13 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             args.delay = 4
             args.Katakana_only = False
             args.katakana = False
+            if direction == "old scrolling":
+                args.old_school_scrolling = False
+                x_list = [x for x in range(0, size_x, spacer)]
+                screen.clear()
+                screen.refresh()
+                line_list.clear()
+                time.sleep(0.2)
             if direction == "right" or direction == "left":
                 args.scroll_right = False
                 args.scroll_left = False
@@ -791,9 +915,9 @@ def display_commands() -> None:
     print("b      Bold characters on")
     print("B      Bold all characters")
     print("n      Bold off (Default)")
-    print("a      Asynchronous like scrolling")
+    print("a      Asynchronous like scrolling (normal scrolling only)")
     print("m      Multiple color mode")
-    print("M      Multiple random color mode")
+    print("M      Multiple random color mode (normal scrolling only")
     print("c      Cycle colors")
     print("d      Restore all defaults")
     print("l      Toggle double space lines")
@@ -803,9 +927,10 @@ def display_commands() -> None:
     print("Z      1 and 0 Mode Off")
     print("f      Freeze the matrix (q will still quit")
     print("v      Toggle matrix scrolling up")
-    print("W      Toggle do not clear screen")
+    print("W      Toggle do not clear screen (normal scrolling only)")
     print("w      Clear the screen, wait 2 seconds and restart")
     print("j      Toggle italic text")
+    print("s      Toggle old school scrolling down only")
     print("up arrow    Matrix scrolls down to up")
     print("down arrow  Matrix scrolls up to down (default)")
     print("right arrow Matrix scrolls from left to right")
@@ -832,7 +957,8 @@ def argument_parsing(
     parser.add_argument("-s", dest="screen_saver", action="store_true",
                         help="Screen saver mode.  Any key will exit.")
     parser.add_argument("-a", dest="async_scroll", action="store_true",
-                        help="enable asynchronous like scrolling")
+                        help="enable asynchronous like scrolling "
+                             "(normal scrolling only)")
     parser.add_argument("-S", dest="start_timer", type=positive_int, default=0,
                         metavar="SECONDS", help="Set start timer in seconds")
     parser.add_argument("-R", dest="run_timer", type=positive_int, default=0,
@@ -845,7 +971,8 @@ def argument_parsing(
     parser.add_argument("-m", dest="multiple_mode", action="store_true",
                         help="Multiple color mode")
     parser.add_argument("-M", dest="random_mode", action="store_true",
-                        help="Multiple random color mode")
+                        help="Multiple random color mode "
+                             "(normal scrolling only")
     parser.add_argument("-c", dest="cycle", action="store_true",
                         help="cycle through the colors")
     parser.add_argument("-e", dest="ext", action="store_true",
@@ -865,6 +992,8 @@ def argument_parsing(
                         help="Matrix scrolls from left to right")
     parser.add_argument("--scroll_left", action="store_true",
                         help="Matrix scrolls from right to left")
+    parser.add_argument("-o", "--old_school_scrolling", action="store_true",
+                        help="Old school scrolling. Scroll down only")
     parser.add_argument("-j", "--italic", action="store_true",
                         help="Italic characters")
     parser.add_argument("-k", "--katakana", action="store_true",
@@ -880,7 +1009,7 @@ def argument_parsing(
                              " numbers between 16 and 255. This requires 256"
                              " color support in the terminal to work.")
     parser.add_argument("-W", "--do_not_clear", action="store_true",
-                        help="do not clear the screen")
+                        help="do not clear the screen (Normal scrolling only)")
     parser.add_argument("--color_number", type=int_between_1_and_255,
                         default=None,
                         metavar="number",

@@ -1185,6 +1185,39 @@ def test_delay_keys():
             assert sc != h.screenshot()
 
 
+def test_pymatrix_old_scroll_test_mode():
+    with Runner(*pymatrix_run("-o", "--test_mode")) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        sleep(0.1)
+        sc = h.screenshot()
+        for k in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSUVWXYZ1234567890+=-&^$#*":
+            assert k not in sc
+
+def test_pymatrix_old_scroll_test_mode_extended_characters():
+    with Runner(*pymatrix_run("-o", "-e", "--test_mode")) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        h.await_text("Ä")
+
+
+def test_pymatrix_old_scroll_test_mode_extended_characters_only():
+    with Runner(*pymatrix_run("-o", "-E", "--test_mode")) as h:
+        h.default_timeout = 3
+        h.await_text("Ä")
+        sleep(0.1)
+        sc = h.screenshot()
+        assert "T" not in sc
+
+
+def test_pymatrix_old_scroll_key():
+    with Runner(*pymatrix_run("--test_mode")) as h:
+        h.default_timeout = 2
+        h.await_text("T")
+        h.press("s")
+        h.await_text("T")
+
+
 def test_build_character_set_zero():
     args = pymatrix.argparse.Namespace(
         ext=False, ext_only=False, katakana=False, Katakana_only=False,
@@ -1348,6 +1381,28 @@ def test_build_character_set_test_katakana_char_and_ext():
     test_set = pymatrix.build_character_set2(args)
     assert test_set == ["T", "ﾎ", "Ä"]
 
+
+def test_build_character_set_old_scrolling_update_list_test():
+    args = pymatrix.argparse.Namespace(
+        ext=False, ext_only=False, katakana=False, Katakana_only=False,
+        zero_one=False, test_mode=True
+    )
+    test_set = pymatrix.build_character_set2(args)
+    assert pymatrix.OldScrollingLine.old_scroll_chr_list == ["T"]
+
+
+def test_build_character_set_old_scrolling_update_list_normal():
+    args = pymatrix.argparse.Namespace(
+        ext=False, ext_only=False, katakana=False, Katakana_only=False,
+        zero_one=False, test_mode=False
+    )
+    pymatrix.build_character_set2(args)
+    assert "A" in pymatrix.OldScrollingLine.old_scroll_chr_list
+    assert "1" in pymatrix.OldScrollingLine.old_scroll_chr_list
+    assert "#" in pymatrix.OldScrollingLine.old_scroll_chr_list
+    assert "a" in pymatrix.OldScrollingLine.old_scroll_chr_list
+    assert "§" not in pymatrix.OldScrollingLine.old_scroll_chr_list
+    assert "ﾎ" not in pymatrix.OldScrollingLine.old_scroll_chr_list
 
 def test_pymatrix_main_list_colors(capsys):
     pymatrix.main(["--list_colors"])
