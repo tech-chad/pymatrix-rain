@@ -18,21 +18,28 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>B</kbd>** = *Bold all*
 - **<kbd>n</kbd>** = *Bold off*
 - **<kbd>0-9</kbd>** = *Delay speed 0-Fast, 4-Default, 9-Slow*
-- **<kbd>a</kbd>** = *Asynchronous like scrolling*
+- **<kbd>a</kbd>** = *Asynchronous like scrolling (normal scrolling only)*
 - **<kbd>m</kbd>** = *Multiple color mode*
-- **<kbd>M</kbd>** = *Multiple random color mode*
+- **<kbd>M</kbd>** = *Multiple random color mode  (normal scrolling only)*
 - **<kbd>d</kbd>** = *Reset to default*
 - **<kbd>c</kbd>** = *Cycle through colors automatically*
 - **<kbd>l</kbd>** = *Toggle double space lines*
 - **<kbd>e</kbd>** = *Toggle extended characters*
 - **<kbd>E</kbd>** = *Only extended characters if on*
+- **<kbd>k</kbd>** = *Half width Katakana characters like those from the movies. If the correct font is installed.*
+- **<kbd>K</kbd>** = *Half width Katakana characters only*
 - **<kbd>z</kbd>** = *Zero and One Mode On*
 - **<kbd>Z</kbd>** = *Zero and One Mode Off*
 - **<kbd>f</kbd>** = *Freeze and unfreeze the matrix. Can still use **<kbd>Q</kbd>** to quit.*
 - **<kbd>v</kbd>** = *Toggle the matrix to scroll up*
-- **<kbd>W</kbd>** = *Toggle do not clear screen*
+- **<kbd>W</kbd>** = *Toggle do not clear screen  (normal scrolling only)*
 - **<kbd>w</kbd>** = *Clear the screen, wait 2 seconds and start*
 - **<kbd>j</kbd>** = *Toggle italic text*
+- **<kbd>s</kbd>** = *Toggle old style matrix scrolling (down only)*
+- **<kbd>up arrow</kbd>** = *Matrix scrolling up*
+- **<kbd>down arrow</kbd>** = *Matrix scrolling down (Default)*
+- **<kbd>left arrow</kbd>** = *Matrix scrolls from right to left*
+- **<kbd>right arrow</kbd>** = *Matrix scrolls from left to right*
 - **<kbd>shift 0-9</kbd>** = *Cycle color delay*
 
 ##### Rain Colors
@@ -77,6 +84,12 @@ Matrix rain effect using python 3 and curses.
 Scrolling Up
 ![matrix5.png](https://i.fluffy.cc/q7xjhc011J6N5nP53dDKrnnJNX7Qp5t3.png)
 
+Scrolling right
+![ScrollRight](https://i.fluffy.cc/7pTmzLLgr2gXl2qhQbr5HTNvQPsMZgCZ.png)
+
+Katakana Characters
+![KatakanaCharacters](https://i.fluffy.cc/Kq5gmgXR6zcNzMCjchP3qJ9BFv89d5zd.png)
+
 Zero and One Mode
 ![matrix6.png](https://i.fluffy.cc/JdRwzdWxltVxc80RDGg7BDB41hZMFmNN.png)
 
@@ -85,3 +98,4 @@ Extended Characters
 
 Italic Mode
 ![matrix8.png](https://i.fluffy.cc/5jBjfXT0c7Vjl0gX1xkMT7nq3wXNwkNV.png)
+
