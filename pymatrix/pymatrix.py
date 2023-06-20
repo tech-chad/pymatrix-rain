@@ -923,6 +923,8 @@ def display_commands() -> None:
     print("l      Toggle double space lines")
     print("e      Extended characters on and off")
     print("E      Extended characters only")
+    print("k      Katakana characters like those from the movies if correct font is installed")
+    print("K      Katakana characters only")
     print("z      1 and 0 Mode On")
     print("Z      1 and 0 Mode Off")
     print("f      Freeze the matrix (q will still quit")
