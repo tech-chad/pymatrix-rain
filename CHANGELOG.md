@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.3.0 - 6/21/23
+
+### Features
+- Added half-width Katakana characters like those from the movies. Requires the correct font to be installed. Use command line option -k or -K. Use key k or K to enable while running.
+- Added option to scroll left or right. Use arrow keys to change directions.
+- Added option to use old style scrolling. Use command line option -o or key s while running.
+
 ## 1.2.0 - 6/21/22
 
 ### Features
