@@ -3,8 +3,8 @@
 import argparse
 import curses
 import datetime
+import importlib.metadata
 import random
-import sys
 import time
 
 from typing import List
@@ -13,12 +13,8 @@ from typing import Sequence
 from typing import Tuple
 from typing import Union
 
-if sys.version_info >= (3, 8):
-    import importlib.metadata as importlib_metadata
-else:
-    import importlib_metadata
 
-version = importlib_metadata.version("pymatrix-rain")
+version = importlib.metadata.version("pymatrix-rain")
 
 CHAR_LIST = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
              "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
