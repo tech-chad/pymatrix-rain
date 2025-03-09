@@ -23,8 +23,7 @@ def test_init():
     (1, True), (2, False), (3, False),
 ])
 def test_init_bold(value, expected):
-    with mock.patch.object(pymatrix.OldScrollingLine,
-                           "old_scroll_chr_list", value=["X"]):
+    with mock.patch.object(pymatrix.random,"choice", return_value=["X"]):
         with mock.patch.object(pymatrix.random, "randint", return_value=value):
             test_line = pymatrix.OldScrollingLine(5, 10, 10)
             assert test_line.bold == expected
