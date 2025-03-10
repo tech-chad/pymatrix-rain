@@ -4,6 +4,7 @@ import argparse
 import curses
 import datetime
 import importlib.metadata
+import itertools
 import random
 import time
 
@@ -66,6 +67,7 @@ CURSES_CH_CODES_COLOR = {114: "red", 82: "red", 116: "green", 84: "green",
                          20: "green", 25: "blue", 21: "yellow", 9: "magenta",
                          15: "cyan", 16: "white", 27: "black", 91: "black",
                          123: "black"}
+DEFAULT_CYCLE_COLOR_DELAY = 500
 WAKE_UP_PAIR = 21
 MIN_SCREEN_SIZE_Y = 10
 MIN_SCREEN_SIZE_X = 10
@@ -341,8 +343,9 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
         setup_curses_colors(args.color, args.background, args.over_ride)
     curses_lead_color(args.lead_color, args.background, args.over_ride)
     screen.bkgd(" ", curses.color_pair(1))
-    count = cycle = 0  # used for cycle through colors mode
-    cycle_delay = 500
+    color_cycle = itertools.cycle([1, 2, 3, 4, 5, 6])
+    color_cycle_count = itertools.count(start=0, step=1)
+    color_cycle_delay = DEFAULT_CYCLE_COLOR_DELAY
     line_list = []
     spacer = 2 if args.double_space else 1
     keys_pressed = 0
@@ -414,13 +417,10 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             continue
 
         if color_mode == "cycle":
-            if count <= 0:
-                setup_curses_colors(list(CURSES_COLOR.keys())[cycle],
+            if next(color_cycle_count) == color_cycle_delay:
+                setup_curses_colors(list(CURSES_COLOR.keys())[next(color_cycle)],
                                     args.background, args.over_ride)
-                count = cycle_delay
-                cycle = 0 if cycle == 6 else cycle + 1
-            else:
-                count -= 1
+                color_cycle_count = itertools.count(start=0, step=1)
         if direction == "old scrolling":
             for line in line_list:
                 if args.bold_all:
@@ -728,8 +728,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 screen.refresh()
             char_set = build_character_set2(args)
         elif color_mode == "cycle" and ch in CURSES_CH_CODES_CYCLE_DELAY.keys():
-            cycle_delay = 100 * CURSES_CH_CODES_CYCLE_DELAY[ch]
-            count = cycle_delay
+            color_cycle_delay = 100 * CURSES_CH_CODES_CYCLE_DELAY[ch]
         elif 48 <= ch <= 57:  # number keys 0 to 9
             args.delay = int(chr(ch))
         elif ch == 87:  # W
