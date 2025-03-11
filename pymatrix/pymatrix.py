@@ -612,38 +612,21 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
         elif ch == 23:  # ctrl-w
             args.wakeup = not args.wakeup
         elif ch == 118:  # v
-            args.reverse = not args.reverse
+            direction = "up" if direction == "down" else "down" \
+                if direction == "up" else "up"
             x_list = [x for x in range(0, size_x, spacer)]
-            args.scroll_right = False
-            if direction == "down":
-                direction = "up"
-            elif direction == "up":
-                direction = "down"
-            else:
-                direction = "up"
             line_list.clear()
             screen.clear()
             screen.refresh()
         elif ch == 115:  # s
-            args.old_school_scrolling = not args.old_school_scrolling
-            if direction == "old scrolling":
-                direction = "down"
-            else:
-                direction = "old scrolling"
-            args.scroll_left = False
-            args.scroll_right = False
+            direction = "down" if direction == "old scrolling" else "old scrolling"
             x_list = [x for x in range(0, size_x, spacer)]
             screen.clear()
             screen.refresh()
             line_list.clear()
             time.sleep(0.2)
-
         elif ch == 261:  # right arrow
-            if not args.scroll_right:
-                args.scroll_right = True
-                args.scroll_left = False
-                args.reverse = False
-                args.old_school_scrolling = False
+            if direction != "right":
                 direction = "right"
                 line_list.clear()
                 screen.clear()
@@ -651,11 +634,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 time.sleep(0.4)
                 y_list = [y for y in range(1, size_y)]
         elif ch == 260:  # left arrow
-            if not args.scroll_left:
-                args.scroll_left = True
-                args.scroll_right = False
-                args.reverse = False
-                args.old_school_scrolling = False
+            if direction != "left":
                 direction = "left"
                 line_list.clear()
                 screen.clear()
@@ -663,10 +642,7 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 time.sleep(0.4)
                 y_list = [y for y in range(1, size_y)]
         elif ch == 259:  # up arrow
-            if not args.reverse:
-                args.reverse = True
-                args.scroll_right = False
-                args.old_school_scrolling = False
+            if direction != "up":
                 direction = "up"
                 line_list.clear()
                 screen.clear()
@@ -675,9 +651,6 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
                 x_list = [x for x in range(0, size_x, spacer)]
         elif ch == 258:  # down arrow
             if direction != "down":
-                args.reverse = False
-                args.scroll_right = False
-                args.old_school_scrolling = False
                 direction = "down"
                 line_list.clear()
                 screen.clear()
@@ -700,32 +673,18 @@ def matrix_loop(screen, args: argparse.Namespace) -> None:
             args.delay = 4
             args.Katakana_only = False
             args.katakana = False
-            if direction == "old scrolling":
-                args.old_school_scrolling = False
+            if direction != "down":
+                direction = "down"
                 x_list = [x for x in range(0, size_x, spacer)]
                 screen.clear()
                 screen.refresh()
                 line_list.clear()
                 time.sleep(0.2)
-            if direction == "right" or direction == "left":
-                args.scroll_right = False
-                args.scroll_left = False
-                x_list = [x for x in range(0, size_x, spacer)]
-                screen.clear()
-                screen.refresh()
-                line_list.clear()
-                time.sleep(0.2)
-            direction = "down"
             args.do_not_clear = False
             args.italic = False
             if spacer == 2:
                 spacer = 1
                 x_list = [x for x in range(0, size_x, spacer)]
-            if args.reverse:
-                args.reverse = False
-                line_list.clear()
-                screen.clear()
-                screen.refresh()
             char_set = build_character_set2(args)
         elif color_mode == "cycle" and ch in CURSES_CH_CODES_CYCLE_DELAY.keys():
             color_cycle_delay = 100 * CURSES_CH_CODES_CYCLE_DELAY[ch]

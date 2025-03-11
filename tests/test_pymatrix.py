@@ -795,7 +795,7 @@ def test_pymatrix_change_direction_from_down_to_right():
         h.press("Right")
         sleep(0.3)
         h.await_text("T")
-        sleep(0.1)
+        sleep(0.4)
         sc = h.screenshot()
         lines = []
         for line in sc.splitlines():
@@ -843,7 +843,7 @@ def test_pymartix_change_direction_from_right_to_down():
         h.press("Down")
         sleep(0.3)
         h.await_text("T")
-        sleep(0.1)
+        sleep(0.4)
         sc = h.screenshot()
         lines = []
         for line in sc.splitlines():
@@ -955,7 +955,7 @@ def test_pymatrix_change_dir_up_to_down_default_key():
         sleep(0.1)
         h.press("d")
         h.await_text("T")
-        sleep(0.2)
+        sleep(0.4)
         sc = h.screenshot()
         lines = []
         for line in sc.splitlines():
