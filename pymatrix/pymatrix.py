@@ -297,36 +297,30 @@ class OldScrollingLine:
 def build_character_set2(args: argparse.Namespace):
     if args.zero_one:
         new_list = ["0", "1"]
+    elif args.ext_only and args.test_mode:
+        new_list = ["Ä"]
     elif args.ext_only:
-        if args.test_mode:
-            new_list = ["Ä"]
-        else:
-            new_list = EXT_CHAR_LIST
+        new_list = EXT_CHAR_LIST
+    elif args.Katakana_only and args.test_mode:
+        new_list = ["ﾎ", "0"]
     elif args.Katakana_only:
-        if args.test_mode:
-            new_list = ["ﾎ", "0"]
-        else:
-            new_list = KATAKANA_CHAR_LIST + KATAKANA_CHAR_LIST_ADDON
+        new_list = KATAKANA_CHAR_LIST + KATAKANA_CHAR_LIST_ADDON
+    elif args.katakana and args.ext and args.test_mode:
+        new_list = ["T", "ﾎ", "Ä"]
     elif args.katakana and args.ext:
-        if args.test_mode:
-            new_list = ["T", "ﾎ", "Ä"]
-        else:
-            new_list = KATAKANA_CHAR_LIST + EXT_CHAR_LIST + CHAR_LIST
+        new_list = KATAKANA_CHAR_LIST + EXT_CHAR_LIST + CHAR_LIST
+    elif args.ext and args.test_mode:
+        new_list = ["Ä", "T"]
     elif args.ext:
-        if args.test_mode:
-            new_list = ["Ä", "T"]
-        else:
-            new_list = CHAR_LIST + EXT_CHAR_LIST
+        new_list = CHAR_LIST + EXT_CHAR_LIST
+    elif args.katakana and args.test_mode:
+        new_list = ["T", "ﾎ"]
     elif args.katakana:
-        if args.test_mode:
-            new_list = ["T", "ﾎ"]
-        else:
-            new_list = CHAR_LIST + KATAKANA_CHAR_LIST
+        new_list = CHAR_LIST + KATAKANA_CHAR_LIST
+    elif args.test_mode:
+        new_list = ["T"]
     else:
-        if args.test_mode:
-            new_list = ["T"]
-        else:
-            new_list = CHAR_LIST
+        new_list = CHAR_LIST
     OldScrollingLine.update_char_list(new_list)
     return new_list
 
@@ -752,22 +746,15 @@ def setup_curses_color_number(
 def setup_curses_colors(color: str, bg_color: str, over_ride: bool) -> None:
     """ Init colors pairs in the curses. """
     if over_ride:
-        if color == "random":
-            color_list = list(CURSES_OVER_RIDE_COLORS.keys())
-        else:
-            color_list = [color for _ in range(7)]
-
-        for x, c in enumerate(color_list):
-            curses.init_pair(x + 1, CURSES_OVER_RIDE_COLORS[c],
-                             CURSES_OVER_RIDE_COLORS[bg_color])
+        curses_colors = CURSES_OVER_RIDE_COLORS
     else:
-        if color == "random":
-            color_list = list(CURSES_COLOR.keys())
-        else:
-            color_list = [color for _ in range(7)]
-
-        for x, c in enumerate(color_list):
-            curses.init_pair(x + 1, CURSES_COLOR[c], CURSES_COLOR[bg_color])
+        curses_colors = CURSES_COLOR
+    if color == "random":
+        color_list = list(curses_colors.keys())
+    else:
+        color_list = [color for _ in range(7)]
+    for x, c in enumerate(color_list):
+        curses.init_pair(x + 1, curses_colors[c], curses_colors[bg_color])
 
 
 def setup_curses_wake_up_colors(override: bool) -> None:

@@ -597,7 +597,7 @@ def test_pymatrix_zero_one_command_line():
 
 
 def test_pymatrix_zero_one_running_command():
-    with Runner(*pymatrix_run("--test_mode", "-l"), width=100, height=50) as h:
+    with Runner(*pymatrix_run("--test_mode", "-l"), width=100, height=25) as h:
         h.default_timeout = 4
         h.await_text("T")
         sleep(0.5)
