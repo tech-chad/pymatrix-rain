@@ -502,7 +502,7 @@ def test_pymatrix_wakeup_now_keys_katakana_only():
         h.await_text("Follow the white rabbit.")
         h.await_text("Knock, knock, Neo.")
         h.await_text("ﾎ")
-        h.await_text("0")
+        h.await_text("T")
 
 
 def test_pymatrix_wakeup_do_not_quit_on_q():

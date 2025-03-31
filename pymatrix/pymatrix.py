@@ -69,6 +69,7 @@ CURSES_CH_CODES_COLOR = {114: "red", 82: "red", 116: "green", 84: "green",
                          123: "black"}
 DEFAULT_CYCLE_COLOR_DELAY = 500
 WAKE_UP_PAIR = 21
+WAKE_UP_KEYS = [119, 65, 107, 101]
 MIN_SCREEN_SIZE_Y = 10
 MIN_SCREEN_SIZE_X = 10
 
@@ -293,6 +294,440 @@ class OldScrollingLine:
         else:
             return False
 
+class Matrix:
+    def __init__(self, screen, args: argparse.Namespace):
+        self.screen = screen
+        self.args = args
+        curses.curs_set(0)  # Set the cursor to off.
+        self.screen.timeout(0)  # Turn blocking off for screen.getch().
+        self.setup_colors()
+        self.screen.bkgd(" ", curses.color_pair(1))
+        self.color_cycle = itertools.cycle([1, 2, 3, 4, 5, 6])
+        self.color_cycle_count = itertools.count(start=0, step=1)
+        self.color_cycle_delay = DEFAULT_CYCLE_COLOR_DELAY
+        self.wake_up_time = 20 if self.args.test_mode \
+            else random.randint(2000, 3000)
+        self.char_set = build_character_set2(args)
+        if args.reverse:
+            self.dir = "up"
+        elif args.scroll_right:
+            self.dir = "right"
+        elif args.scroll_left:
+            self.dir = "left"
+        elif args.old_school_scrolling:
+            self.dir = "old scrolling"
+        else:
+            self.dir = "down"
+        if self.args.multiple_mode:
+            self.color_mode = "multiple"
+            setup_curses_colors("random",
+                                self.args.background, self.args.over_ride)
+        elif self.args.random_mode:
+            self.color_mode = "random"
+            setup_curses_colors("random",
+                                self.args.background, self.args.over_ride)
+        elif self.args.cycle:
+            self.color_mode = "cycle"
+        else:
+            self.color_mode = "normal"
+        self.spacer = 2 if self.args.double_space else 1
+        self.line_list = []
+        self.x_list = []
+        self.y_list = []
+        self.keys_pressed = []
+        self.main_loop()
+
+    def main_loop(self) -> None:
+        size_y, size_x = self.screen.getmaxyx()
+        self.check_screen_size(size_y, size_x)
+        self.x_list = [x for x in range(0, size_x, self.spacer)]
+        self.y_list = [y for y in range(1, size_y)]
+
+        time_delta = datetime.timedelta(seconds=self.args.run_timer)
+        end_time = datetime.datetime.now() + time_delta
+        while True:
+            if curses.is_term_resized(size_y, size_x):
+                size_y, size_x = self.screen.getmaxyx()
+                self.check_screen_size(size_y, size_x)
+                self.x_list = [x for x in range(0, size_x, self.spacer)]
+                self.y_list = [y for y in range(0, size_y)]
+                self.line_list.clear()
+                self.screen.clear()
+                self.screen.refresh()
+                continue
+            self.add_lines(size_y, size_x)
+            if self.color_mode == "cycle":
+                if next(self.color_cycle_count) == self.color_cycle_delay:
+                    color = list(CURSES_COLOR.keys())[next(self.color_cycle)]
+                    setup_curses_colors(color,
+                                        self.args.background,
+                                        self.args.over_ride)
+                    self.color_cycle_count = itertools.count(start=0, step=1)
+            if self.dir == "old scrolling":
+                self.display_old_scrolling()
+            else:
+                self.display_normal_scrolling()
+            if self.args.wakeup:
+                self.handle_wake_up()
+            if self.args.run_timer and datetime.datetime.now() >= end_time:
+                break
+            time.sleep(DELAY_SPEED[self.args.delay])
+            if self.handle_input():
+                break
+        self.screen.erase()
+        self.screen.refresh()
+
+
+    def handle_input(self) -> bool:
+        """
+        Returns True: Break. Quit the matrix
+        Returns False: Continue running the matrix
+        """
+        ch = self.screen.getch()
+        if ch == -1:
+            return False
+        elif self.args.screen_saver:
+            return True
+        elif ch in [81, 113]:  # q, Q
+            return True
+        elif self.args.disable_keys:
+            return False
+        if ch in WAKE_UP_KEYS:
+            self.keys_pressed.append(ch)
+            if self.keys_pressed == WAKE_UP_KEYS:
+                wake_up_neo(self.screen, self.args.test_mode)
+                while self.screen.getch() != -1:  # clears out the buffer
+                    pass
+                self.keys_pressed = []
+                self.screen.bkgd(" ", curses.color_pair(1))
+                return False
+            elif len(self.keys_pressed) >= 4:
+                self.keys_pressed = []
+                return False
+        # commands
+        if ch == 98:  # b
+            self.args.bold_on = True
+            self.args.bold_all = False
+        elif ch == 66:  # B
+            self.args.bold_all = True
+            self.args.bold_on = False
+        elif ch in [78, 110]:  # n or N
+            self.args.bold_on = False
+            self.args.bold_all = False
+        elif ch in [114, 116, 121, 117, 105, 111, 112, 91]:
+            # r, t, y, u, i, o, p, [
+            self.args.color = CURSES_CH_CODES_COLOR[ch]
+            setup_curses_colors(self.args.color, self.args.background,
+                                self.args.over_ride)
+            self.color_mode = "normal"
+        elif ch in [82, 84, 89, 85, 73, 79, 80, 123]:
+            # R, T, Y, U, I, O, P, {
+            self.args.lead_color = CURSES_CH_CODES_COLOR[ch]
+            curses_lead_color(self.args.lead_color, self.args.background,
+                              self.args.over_ride)
+        elif ch in [18, 20, 25, 21, 9, 15, 16, 27]:
+            # ctrl R, T, Y, U, I, O, P, [
+            self.args.background = CURSES_CH_CODES_COLOR[ch]
+            setup_curses_colors(self.args.color, self.args.background,
+                                self.args.over_ride)
+            curses_lead_color(self.args.lead_color, self.args.background,
+                              self.args.over_ride)
+            self.screen.bkgd(" ", curses.color_pair(1))
+        elif ch == 97:  # a
+            self.args.async_scroll = not self.args.async_scroll
+        elif ch == 109:  # m
+            if self.color_mode in ["random", "normal", "cycle"]:
+                self.color_mode = "multiple"
+                setup_curses_colors("random", self.args.background,
+                                    self.args.over_ride)
+            else:
+                self.color_mode = "normal"
+                setup_curses_colors("green", self.args.background,
+                                    self.args.over_ride)
+        elif ch == 77:  # M
+            if self.color_mode in ["multiple", "normal", "cycle"]:
+                self.color_mode = "random"
+                setup_curses_colors("random", self.args.background,
+                                    self.args.over_ride)
+            else:
+                self.color_mode = "normal"
+                setup_curses_colors("green", self.args.background,
+                                    self.args.over_ride)
+        elif ch == 99:  # c
+            if self.color_mode in ["random", "multiple", "normal"]:
+                self.color_mode = "cycle"
+            else:
+                self.color_mode = "normal"
+        elif ch == 108:  # l
+            if self.dir == "right" or self.dir == "left":
+                return False
+            if self.spacer == 1:
+                self.spacer = 2
+                self.x_list = [x for x in range(0, curses.COLS, self.spacer)]
+                self.line_list.clear()
+                self.screen.clear()
+                self.screen.refresh()
+            else:
+                spacer = 1
+                self.x_list = [x for x in range(0, curses.COLS, spacer)]
+        elif ch == 101:  # e
+            self.args.zero_one = False
+            if self.args.ext or self.args.ext_only:
+                self.args.ext = False
+            else:
+                self.args.ext = True
+            self.char_set = build_character_set2(self.args)
+        elif ch == 69:  # E
+            self.args.zero_one = False
+            self.args.ext_only = not self.args.ext_only
+            self.char_set = build_character_set2(self.args)
+        elif ch == 122 and not self.args.zero_one:  # z
+            self.args.zero_one = True
+            self.char_set = build_character_set2(self.args)
+        elif ch == 90 and self.args.zero_one:  # Z
+            self.args.zero_one = False
+            self.char_set = build_character_set2(self.args)
+        elif ch == 23:  # ctrl-w
+            self.args.wakeup = not self.args.wakeup
+        elif ch == 118:  # v
+            if self.dir == "down":
+                self.dir = "up"
+            elif self.dir == "up":
+                self.dir = "down"
+            else:
+                self.dir = "up"
+            self.x_list = [x for x in range(0, curses.COLS, self.spacer)]
+            self.line_list.clear()
+            self.screen.clear()
+            self.screen.refresh()
+        elif ch == 115:  # s
+            self.dir = "down" if self.dir == "old scroll" else "old scroll"
+            self.x_list = [x for x in range(0, curses.COLS, self.spacer)]
+            self.screen.clear()
+            self.screen.refresh()
+            self.line_list.clear()
+            time.sleep(0.2)
+        elif ch == 261:  # right arrow
+            if self.dir != "right":
+                self.dir = "right"
+                self.line_list.clear()
+                self.screen.clear()
+                self.screen.refresh()
+                time.sleep(0.4)
+                self.y_list = [y for y in range(1, curses.LINES)]
+        elif ch == 260:  # left arrow
+            if self.dir != "left":
+                self.dir = "left"
+                self.line_list.clear()
+                self.screen.clear()
+                self.screen.refresh()
+                time.sleep(0.4)
+                self.y_list = [y for y in range(1, curses.LINES)]
+        elif ch == 259:  # up arrow
+            if self.dir != "up":
+                self.dir = "up"
+                self.line_list.clear()
+                self.screen.clear()
+                self.screen.refresh()
+                time.sleep(0.4)
+                self.x_list = [x for x in range(0, curses.COLS, self.spacer)]
+        elif ch == 258:  # down arrow
+            if self.dir != "down":
+                self.dir = "down"
+                self.line_list.clear()
+                self.screen.clear()
+                self.screen.refresh()
+                time.sleep(0.3)
+                self.x_list = [x for x in range(0, curses.COLS, self.spacer)]
+        elif ch in [100, 68]:  # d, D
+            self.args.zero_one = False
+            self.args.bold_on = False
+            self.args.bold_all = False
+            self.args.background = "black"
+            self.args.color = "green"
+            self.args.lead_color = "white"
+            self.args.ext = False
+            self.args.ext_only = False
+            setup_curses_colors(self.args.color, self.args.background,
+                                self.args.over_ride)
+            curses_lead_color(self.args.lead_color, self.args.background,
+                              self.args.over_ride)
+            self.color_mode = "normal"
+            self.args.async_scroll = False
+            self.args.delay = 4
+            self.args.Katakana_only = False
+            self.args.katakana = False
+            if self.dir != "down":
+                self.dir = "down"
+                self.x_list = [x for x in range(0, curses.COLS, self.spacer)]
+                self.screen.clear()
+                self.screen.refresh()
+                self.line_list.clear()
+                time.sleep(0.2)
+            self.args.do_not_clear = False
+            self.args.italic = False
+            if self.spacer == 2:
+                self.spacer = 1
+                self.x_list = [x for x in range(0, curses.COLS, self.spacer)]
+            self.char_set = build_character_set2(self.args)
+        elif (self.color_mode == "cycle" and
+              ch in CURSES_CH_CODES_CYCLE_DELAY.keys()):
+            self.color_cycle_delay = 100 * CURSES_CH_CODES_CYCLE_DELAY[ch]
+        elif 48 <= ch <= 57:  # number keys 0 to 9
+            self.args.delay = int(chr(ch))
+        elif ch == 87:  # W
+            self.args.do_not_clear = not self.args.do_not_clear
+        elif ch == 119:  # w
+            self.screen.clear()
+            self.screen.refresh()
+            self.line_list.clear()
+            time.sleep(2)
+            return False
+        elif ch == 106:  # j
+            self.args.italic = not self.args.italic
+        elif ch == 102:  # f
+            # Freeze the Matrix
+            while True:
+                ch = self.screen.getch()
+                if ch == 102:
+                    break
+                elif ch in [81, 113]:  # q, Q
+                    return True
+        elif ch == 75:  # K
+            self.args.zero_one = False
+            self.args.Katakana_only = not self.args.Katakana_only
+            self.char_set = build_character_set2(self.args)
+        elif ch == 107:  # k
+            self.args.zero_one = False
+            self.args.Katakana_only = False
+            self.args.katakana = not self.args.katakana
+            self.char_set = build_character_set2(self.args)
+
+    def handle_wake_up(self) -> None:
+        if self.wake_up_time <= 0:
+            wake_up_neo(self.screen, self.args.test_mode)
+            self.wake_up_time = random.randint(2000, 3000)
+            while self.screen.getch() != -1:  # clears out the buffer
+                ...
+            self.screen.bkgd(" ", curses.color_pair(1))
+        else:
+            self.wake_up_time -= 1
+
+    def add_lines(self, size_y: int, size_x: int) -> None:
+        if self.dir == "right" or self.dir == "left":
+            y = random.choice(self.y_list)
+            self.line_list.append(SingleLine(y, 0, size_x, size_y,self.dir))
+        elif self.dir == "old scrolling":
+            if len(self.line_list) < size_x - 1 and len(self.x_list) > 3:
+                for _ in range(2):
+                    x = random.choice(self.x_list)
+                    self.x_list.pop(self.x_list.index(x))
+                    self.line_list.append(OldScrollingLine(x, size_x, size_y))
+        else:  # down and up
+            if len(self.line_list) < size_x - 1 and len(self.x_list) > 3:
+                for _ in range(2):
+                    x = random.choice(self.x_list)
+                    self.x_list.pop(self.x_list.index(x))
+                    self.line_list.append(
+                        SingleLine(0, x, size_x, size_y, self.dir))
+
+    def display_old_scrolling(self) -> None:
+        remove_list = []
+        for line in self.line_list:
+            if self.args.bold_all:
+                bold = curses.A_BOLD
+            elif self.args.bold_on and line.bold:
+                bold = curses.A_BOLD
+            else:
+                bold = curses.A_NORMAL
+
+            italic = curses.A_ITALIC if self.args.italic else curses.A_NORMAL
+
+            color = curses.color_pair(line.line_color_number)
+            remove = line.delete_last()
+            lead = line.get_lead()
+            if lead is not None:
+                self.screen.addstr(lead[0], lead[1], lead[2],
+                              curses.color_pair(10) + bold + italic)
+            if remove is not None:
+                self.screen.addstr(remove[0], remove[1], " ")
+                if line.x not in self.x_list:
+                    self.x_list.append(line.x)
+            location_char_list = line.get_next()
+            for cell in location_char_list:
+                self.screen.addstr(*cell, color + bold + italic)
+            okay_to_delete = line.okay_to_delete()
+            if okay_to_delete:
+                remove_list.append(line)
+        self. screen.refresh()
+        for rem in remove_list:
+            self.line_list.pop(self.line_list.index(rem))
+
+    def display_normal_scrolling(self) -> None:
+        remove_list = []
+        for line in self.line_list:
+            if self.args.async_scroll and not line.async_scroll_turn():
+                # Not the line's turn in async scroll mode then
+                # continue to the next line.
+                continue
+            remove_line = line.delete_last()
+            if remove_line is not None:
+                if self.args.do_not_clear is False:
+                    self.screen.addstr(remove_line[0], remove_line[1], " ")
+                if line.x not in self.x_list:
+                    self.x_list.append(line.x)
+
+            if self.args.bold_all:
+                bold = curses.A_BOLD
+            elif self.args.bold_on:
+                if random.randint(1, 3) <= 1:
+                    bold = curses.A_BOLD
+                else:
+                    bold = curses.A_NORMAL
+            else:
+                bold = curses.A_NORMAL
+
+            italic = curses.A_ITALIC if self.args.italic else curses.A_NORMAL
+
+            if self.color_mode == "random":
+                color = curses.color_pair(random.randint(1, 7))
+            else:
+                color = curses.color_pair(line.line_color_number)
+            new_char = line.get_next()
+            if new_char is not None:
+                self.screen.addstr(new_char[0],
+                              new_char[1],
+                              random.choice(self.char_set),
+                              color + bold + italic)
+            lead_char = line.get_lead()
+            if lead_char is not None:
+                self.screen.addstr(lead_char[0], lead_char[1],
+                              random.choice(self.char_set),
+                              curses.color_pair(10) + bold + italic)
+            if line.okay_to_delete():
+                remove_list.append(line)
+        self. screen.refresh()
+        for rem in remove_list:
+            self.line_list.pop(self.line_list.index(rem))
+
+    @classmethod
+    def check_screen_size(cls, size_y: int, size_x: int) -> None:
+        if size_y < MIN_SCREEN_SIZE_Y:
+            raise PyMatrixError("Error screen height is to short.")
+        if size_x < MIN_SCREEN_SIZE_X:
+            raise PyMatrixError("Error screen width is to narrow.")
+
+    def setup_colors(self) -> None:
+        setup_curses_wake_up_colors(self.args.over_ride)
+        curses_lead_color(self.args.lead_color,
+                          self.args.background, self.args.over_ride)
+        if self.args.color_number is not None:
+            setup_curses_color_number(self.args.color_number,
+                                      self.args.background, self.args.over_ride)
+        else:
+            setup_curses_colors(self.args.color, self.args.background,
+                                self.args.over_ride)
+
 
 def build_character_set2(args: argparse.Namespace):
     if args.zero_one:
@@ -323,401 +758,6 @@ def build_character_set2(args: argparse.Namespace):
         new_list = CHAR_LIST
     OldScrollingLine.update_char_list(new_list)
     return new_list
-
-
-def matrix_loop(screen, args: argparse.Namespace) -> None:
-    """ Main loop. """
-    curses.curs_set(0)  # Set the cursor to off.
-    screen.timeout(0)  # Turn blocking off for screen.getch().
-    setup_curses_wake_up_colors(args.over_ride)
-    if args.color_number is not None:
-        setup_curses_color_number(args.color_number, args.background,
-                                  args.over_ride)
-    else:
-        setup_curses_colors(args.color, args.background, args.over_ride)
-    curses_lead_color(args.lead_color, args.background, args.over_ride)
-    screen.bkgd(" ", curses.color_pair(1))
-    color_cycle = itertools.cycle([1, 2, 3, 4, 5, 6])
-    color_cycle_count = itertools.count(start=0, step=1)
-    color_cycle_delay = DEFAULT_CYCLE_COLOR_DELAY
-    line_list = []
-    spacer = 2 if args.double_space else 1
-    keys_pressed = 0
-    if args.reverse:
-        direction = "up"
-    elif args.scroll_right:
-        direction = "right"
-    elif args.scroll_left:
-        direction = "left"
-    elif args.old_school_scrolling:
-        direction = "old scrolling"
-    else:
-        direction = "down"
-
-    char_set = build_character_set2(args)
-
-    wake_up_time = 20 if args.test_mode else random.randint(2000, 3000)
-
-    if args.multiple_mode:
-        color_mode = "multiple"
-        setup_curses_colors("random", args.background, args.over_ride)
-    elif args.random_mode:
-        color_mode = "random"
-        setup_curses_colors("random", args.background, args.over_ride)
-    elif args.cycle:
-        color_mode = "cycle"
-    else:
-        color_mode = "normal"
-
-    size_y, size_x = screen.getmaxyx()
-    if size_y < MIN_SCREEN_SIZE_Y:
-        raise PyMatrixError("Error screen height is to short.")
-    if size_x < MIN_SCREEN_SIZE_X:
-        raise PyMatrixError("Error screen width is to narrow.")
-    x_list = [x for x in range(0, size_x, spacer)]
-    y_list = [y for y in range(1, size_y)]
-
-    time_delta = datetime.timedelta(seconds=args.run_timer)
-    end_time = datetime.datetime.now() + time_delta
-    while True:
-        remove_list = []
-        if direction == "right" or direction == "left":
-            y = random.choice(y_list)
-            line_list.append(SingleLine(y, 0, size_x, size_y, direction))
-        else:
-            if len(line_list) < size_x - 1 and len(x_list) > 3:
-                for _ in range(2):
-                    x = random.choice(x_list)
-                    x_list.pop(x_list.index(x))
-                    if direction == "old scrolling":
-                        line_list.append(OldScrollingLine(x, size_x, size_y))
-                    else:
-                        line_list.append(
-                            SingleLine(0, x, size_x, size_y, direction))
-
-        resize = curses.is_term_resized(size_y, size_x)
-        if resize is True:
-            size_y, size_x = screen.getmaxyx()
-            if size_y < MIN_SCREEN_SIZE_Y:
-                raise PyMatrixError("Error screen height is to short.")
-            if size_x < MIN_SCREEN_SIZE_X:
-                raise PyMatrixError("Error screen width is to narrow.")
-            x_list = [x for x in range(0, size_x, spacer)]
-            y_list = [y for y in range(0, size_y)]
-
-            line_list.clear()
-            screen.clear()
-            screen.refresh()
-            continue
-
-        if color_mode == "cycle":
-            if next(color_cycle_count) == color_cycle_delay:
-                setup_curses_colors(list(CURSES_COLOR.keys())[next(color_cycle)],
-                                    args.background, args.over_ride)
-                color_cycle_count = itertools.count(start=0, step=1)
-        if direction == "old scrolling":
-            for line in line_list:
-                if args.bold_all:
-                    bold = curses.A_BOLD
-                elif args.bold_on and line.bold:
-                    bold = curses.A_BOLD
-                else:
-                    bold = curses.A_NORMAL
-
-                italic = curses.A_ITALIC if args.italic else curses.A_NORMAL
-
-                color = curses.color_pair(line.line_color_number)
-                remove = line.delete_last()
-                lead = line.get_lead()
-                if lead is not None:
-                    screen.addstr(lead[0], lead[1], lead[2],
-                                  curses.color_pair(10) + bold + italic)
-                if remove is not None:
-                    screen.addstr(remove[0], remove[1], " ")
-                    if line.x not in x_list:
-                        x_list.append(line.x)
-                location_char_list = line.get_next()
-                for cell in location_char_list:
-                    screen.addstr(*cell, color + bold + italic)
-                okay_to_delete = line.okay_to_delete()
-                if okay_to_delete:
-                    remove_list.append(line)
-        else:
-            for line in line_list:
-                if args.async_scroll and not line.async_scroll_turn():
-                    # Not the line's turn in async scroll mode then
-                    # continue to the next line.
-                    continue
-                remove_line = line.delete_last()
-                if remove_line is not None:
-                    if args.do_not_clear is False:
-                        screen.addstr(remove_line[0], remove_line[1], " ")
-                    if line.x not in x_list:
-                        x_list.append(line.x)
-
-                if args.bold_all:
-                    bold = curses.A_BOLD
-                elif args.bold_on:
-                    if random.randint(1, 3) <= 1:
-                        bold = curses.A_BOLD
-                    else:
-                        bold = curses.A_NORMAL
-                else:
-                    bold = curses.A_NORMAL
-
-                italic = curses.A_ITALIC if args.italic else curses.A_NORMAL
-
-                if color_mode == "random":
-                    color = curses.color_pair(random.randint(1, 7))
-                else:
-                    color = curses.color_pair(line.line_color_number)
-                new_char = line.get_next()
-                if new_char is not None:
-                    screen.addstr(new_char[0],
-                                  new_char[1],
-                                  random.choice(char_set),
-                                  color + bold + italic)
-                lead_char = line.get_lead()
-                if lead_char is not None:
-                    screen.addstr(lead_char[0], lead_char[1],
-                                  random.choice(char_set),
-                                  curses.color_pair(10) + bold + italic)
-                if line.okay_to_delete():
-                    remove_list.append(line)
-            screen.refresh()
-
-        for rem in remove_list:
-            line_list.pop(line_list.index(rem))
-
-        if args.wakeup:
-            if wake_up_time <= 0:
-                wake_up_neo(screen, args.test_mode)
-                wake_up_time = random.randint(2000, 3000)
-                while screen.getch() != -1:  # clears out the buffer
-                    ...
-                screen.bkgd(" ", curses.color_pair(1))
-                continue
-            else:
-                wake_up_time -= 1
-
-        if args.run_timer and datetime.datetime.now() >= end_time:
-            break
-        time.sleep(DELAY_SPEED[args.delay])
-        ch = screen.getch()
-        if ch == -1:
-            continue
-        elif args.screen_saver:
-            break
-        elif ch in [81, 113]:  # q, Q
-            break
-        elif args.disable_keys:
-            continue
-        # Commands:
-        elif ch == 119 and keys_pressed == 0:  # w
-            keys_pressed = 1
-        elif ch == 65 and keys_pressed == 1:  # A
-            keys_pressed = 2
-        elif ch == 107 and keys_pressed == 2:  # k
-            keys_pressed = 3
-            continue
-        elif ch == 101 and keys_pressed == 3:  # e
-            wake_up_neo(screen, args.test_mode)
-            while screen.getch() != -1:  # clears out the buffer
-                pass
-            keys_pressed = 0
-            screen.bkgd(" ", curses.color_pair(1))
-            continue
-        else:
-            keys_pressed = 0
-        if ch == 98:  # b
-            args.bold_on = True
-            args.bold_all = False
-        elif ch == 66:  # B
-            args.bold_all = True
-            args.bold_on = False
-        elif ch in [78, 110]:  # n or N
-            args.bold_on = False
-            args.bold_all = False
-        elif ch in [114, 116, 121, 117, 105, 111, 112, 91]:
-            # r, t, y, u, i, o, p, [
-            args.color = CURSES_CH_CODES_COLOR[ch]
-            setup_curses_colors(args.color, args.background, args.over_ride)
-            color_mode = "normal"
-        elif ch in [82, 84, 89, 85, 73, 79, 80, 123]:
-            # R, T, Y, U, I, O, P, {
-            args.lead_color = CURSES_CH_CODES_COLOR[ch]
-            curses_lead_color(args.lead_color, args.background, args.over_ride)
-        elif ch in [18, 20, 25, 21, 9, 15, 16, 27]:
-            # ctrl R, T, Y, U, I, O, P, [
-            args.background = CURSES_CH_CODES_COLOR[ch]
-            setup_curses_colors(args.color, args.background, args.over_ride)
-            curses_lead_color(args.lead_color, args.background, args.over_ride)
-            screen.bkgd(" ", curses.color_pair(1))
-        elif ch == 97:  # a
-            args.async_scroll = not args.async_scroll
-        elif ch == 109:  # m
-            if color_mode in ["random", "normal", "cycle"]:
-                color_mode = "multiple"
-                setup_curses_colors("random", args.background, args.over_ride)
-            else:
-                color_mode = "normal"
-                setup_curses_colors("green", args.background, args.over_ride)
-        elif ch == 77:  # M
-            if color_mode in ["multiple", "normal", "cycle"]:
-                color_mode = "random"
-                setup_curses_colors("random", args.background, args.over_ride)
-            else:
-                color_mode = "normal"
-                setup_curses_colors("green", args.background, args.over_ride)
-        elif ch == 99:  # c
-            if color_mode in ["random", "multiple", "normal"]:
-                color_mode = "cycle"
-            else:
-                color_mode = "normal"
-        elif ch == 108:  # l
-            if direction == "right" or direction == "left":
-                continue
-            if spacer == 1:
-                spacer = 2
-                x_list = [x for x in range(0, size_x, spacer)]
-                line_list.clear()
-                screen.clear()
-                screen.refresh()
-            else:
-                spacer = 1
-                x_list = [x for x in range(0, size_x, spacer)]
-        elif ch == 101:  # e
-            args.zero_one = False
-            if args.ext or args.ext_only:
-                args.ext = False
-            else:
-                args.ext = True
-            char_set = build_character_set2(args)
-        elif ch == 69:  # E
-            args.zero_one = False
-            args.ext_only = not args.ext_only
-            char_set = build_character_set2(args)
-        elif ch == 122 and not args.zero_one:  # z
-            args.zero_one = True
-            char_set = build_character_set2(args)
-        elif ch == 90 and args.zero_one:  # Z
-            args.zero_one = False
-            char_set = build_character_set2(args)
-        elif ch == 23:  # ctrl-w
-            args.wakeup = not args.wakeup
-        elif ch == 118:  # v
-            direction = "up" if direction == "down" else "down" \
-                if direction == "up" else "up"
-            x_list = [x for x in range(0, size_x, spacer)]
-            line_list.clear()
-            screen.clear()
-            screen.refresh()
-        elif ch == 115:  # s
-            direction = "down" if direction == "old scrolling" else "old scrolling"
-            x_list = [x for x in range(0, size_x, spacer)]
-            screen.clear()
-            screen.refresh()
-            line_list.clear()
-            time.sleep(0.2)
-        elif ch == 261:  # right arrow
-            if direction != "right":
-                direction = "right"
-                line_list.clear()
-                screen.clear()
-                screen.refresh()
-                time.sleep(0.4)
-                y_list = [y for y in range(1, size_y)]
-        elif ch == 260:  # left arrow
-            if direction != "left":
-                direction = "left"
-                line_list.clear()
-                screen.clear()
-                screen.refresh()
-                time.sleep(0.4)
-                y_list = [y for y in range(1, size_y)]
-        elif ch == 259:  # up arrow
-            if direction != "up":
-                direction = "up"
-                line_list.clear()
-                screen.clear()
-                screen.refresh()
-                time.sleep(0.4)
-                x_list = [x for x in range(0, size_x, spacer)]
-        elif ch == 258:  # down arrow
-            if direction != "down":
-                direction = "down"
-                line_list.clear()
-                screen.clear()
-                screen.refresh()
-                time.sleep(0.3)
-                x_list = [x for x in range(0, size_x, spacer)]
-        elif ch in [100, 68]:  # d, D
-            args.zero_one = False
-            args.bold_on = False
-            args.bold_all = False
-            args.background = "black"
-            args.color = "green"
-            args.lead_color = "white"
-            args.ext = False
-            args.ext_only = False
-            setup_curses_colors(args.color, args.background, args.over_ride)
-            curses_lead_color(args.lead_color, args.background, args.over_ride)
-            color_mode = "normal"
-            args.async_scroll = False
-            args.delay = 4
-            args.Katakana_only = False
-            args.katakana = False
-            if direction != "down":
-                direction = "down"
-                x_list = [x for x in range(0, size_x, spacer)]
-                screen.clear()
-                screen.refresh()
-                line_list.clear()
-                time.sleep(0.2)
-            args.do_not_clear = False
-            args.italic = False
-            if spacer == 2:
-                spacer = 1
-                x_list = [x for x in range(0, size_x, spacer)]
-            char_set = build_character_set2(args)
-        elif color_mode == "cycle" and ch in CURSES_CH_CODES_CYCLE_DELAY.keys():
-            color_cycle_delay = 100 * CURSES_CH_CODES_CYCLE_DELAY[ch]
-        elif 48 <= ch <= 57:  # number keys 0 to 9
-            args.delay = int(chr(ch))
-        elif ch == 87:  # W
-            args.do_not_clear = not args.do_not_clear
-        elif ch == 119:  # w
-            screen.clear()
-            screen.refresh()
-            line_list.clear()
-            time.sleep(2)
-            continue
-        elif ch == 106:  # j
-            args.italic = not args.italic
-        elif ch == 102:  # f
-            # Freeze the Matrix
-            quit_matrix = False
-            while True:
-                ch = screen.getch()
-                if ch == 102:
-                    break
-                elif ch in [81, 113]:  # q, Q
-                    quit_matrix = True
-                    break
-            if quit_matrix:
-                break
-        elif ch == 75:  # K
-            args.zero_one = False
-            args.Katakana_only = not args.Katakana_only
-            char_set = build_character_set2(args)
-        elif ch == 107:  # k
-            args.zero_one = False
-            args.Katakana_only = False
-            args.katakana = not args.katakana
-            char_set = build_character_set2(args)
-
-    screen.erase()
-    screen.refresh()
 
 
 def curses_lead_color(color: str, bg_color: str, over_ride: bool) -> None:
@@ -989,7 +1029,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     time.sleep(args.start_timer)
     try:
-        curses.wrapper(matrix_loop, args)
+        curses.wrapper(Matrix, args)
     except KeyboardInterrupt:
         pass
     except PyMatrixError as e:
