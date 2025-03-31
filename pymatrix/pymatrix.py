@@ -166,16 +166,18 @@ class SingleLine:
             if self.x < 0 or self.x >= self.width:
                 self.x += 1
                 return None
-            x = self.x
-            self.x += 1
-            return self.y, x
+            else:
+                x = self.x
+                self.x += 1
+                return self.y, x
         elif self.direction == "left":
             if self.x >= self.width or self.x < 0:
                 self.x -= 1
                 return None
-            x = self.x
-            self.x -= 1
-            return self.y, x
+            else:
+                x = self.x
+                self.x -= 1
+                return self.y, x
 
     def delete_last(self) -> Union[Tuple[int, int], None]:
         if self.direction == "down":
@@ -213,25 +215,13 @@ class SingleLine:
 
     def okay_to_delete(self) -> bool:
         if self.direction == "down":
-            if self.last_y > self.height:
-                return True
-            else:
-                return False
+            return True if self.last_y > self.height else False
         elif self.direction == "up":
-            if self.last_y < 0:
-                return True
-            else:
-                return False
+            return True if self.last_y < 0 else False
         elif self.direction == "right":
-            if self.last_x >= self.width:
-                return True
-            else:
-                return False
+            return True if self.last_x >= self.width else False
         elif self.direction == "left":
-            if self.last_x < 0:
-                return True
-            else:
-                return False
+            return True if self.last_x < 0 else False
 
     def async_scroll_turn(self) -> bool:
         if self.async_scroll_count == self.async_scroll_rate:
@@ -289,10 +279,8 @@ class OldScrollingLine:
         return self.location_list
 
     def okay_to_delete(self) -> bool:
-        if len(self.location_list) == 0 and self.y > self.height:
-            return True
-        else:
-            return False
+        return len(self.location_list) == 0 and self.y > self.height
+
 
 class Matrix:
     def __init__(self, screen, args: argparse.Namespace):
@@ -642,22 +630,18 @@ class Matrix:
                 bold = curses.A_NORMAL
 
             italic = curses.A_ITALIC if self.args.italic else curses.A_NORMAL
-
             color = curses.color_pair(line.line_color_number)
-            remove = line.delete_last()
-            lead = line.get_lead()
-            if lead is not None:
+            if lead := line.get_lead():
                 self.screen.addstr(lead[0], lead[1], lead[2],
                               curses.color_pair(10) + bold + italic)
-            if remove is not None:
+            if remove := line.delete_last():
                 self.screen.addstr(remove[0], remove[1], " ")
                 if line.x not in self.x_list:
                     self.x_list.append(line.x)
             location_char_list = line.get_next()
             for cell in location_char_list:
                 self.screen.addstr(*cell, color + bold + italic)
-            okay_to_delete = line.okay_to_delete()
-            if okay_to_delete:
+            if line.okay_to_delete():
                 remove_list.append(line)
         self. screen.refresh()
         for rem in remove_list:
@@ -670,8 +654,7 @@ class Matrix:
                 # Not the line's turn in async scroll mode then
                 # continue to the next line.
                 continue
-            remove_line = line.delete_last()
-            if remove_line is not None:
+            if remove_line := line.delete_last():
                 if self.args.do_not_clear is False:
                     self.screen.addstr(remove_line[0], remove_line[1], " ")
                 if line.x not in self.x_list:
@@ -688,19 +671,16 @@ class Matrix:
                 bold = curses.A_NORMAL
 
             italic = curses.A_ITALIC if self.args.italic else curses.A_NORMAL
-
             if self.color_mode == "random":
                 color = curses.color_pair(random.randint(1, 7))
             else:
                 color = curses.color_pair(line.line_color_number)
-            new_char = line.get_next()
-            if new_char is not None:
+            if new_char := line.get_next():
                 self.screen.addstr(new_char[0],
                               new_char[1],
                               random.choice(self.char_set),
                               color + bold + italic)
-            lead_char = line.get_lead()
-            if lead_char is not None:
+            if lead_char := line.get_lead():
                 self.screen.addstr(lead_char[0], lead_char[1],
                               random.choice(self.char_set),
                               curses.color_pair(10) + bold + italic)
