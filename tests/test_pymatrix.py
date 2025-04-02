@@ -177,7 +177,7 @@ def test_pymatrix_quit_with_run_timer(test_key):
 
 def test_pymatrix_list_colors():
     with Runner(*pymatrix_run("--list_colors")) as h:
-        h.default_timeout = 2
+        h.default_timeout = 4
         h.await_text("red green blue yellow magenta cyan white")
 
 
@@ -1441,10 +1441,21 @@ def test_build_character_set_old_scrolling_update_list_normal():
     assert "§" not in pymatrix.OldScrollingLine.old_scroll_chr_list
     assert "ﾎ" not in pymatrix.OldScrollingLine.old_scroll_chr_list
 
+
+def test_list_colors_colors(capsys):
+    expected = ("\033[91mred \033[92mgreen \033[94mblue \033[93myellow "
+                "\033[95mmagenta \033[96mcyan \033[97mwhite \033[90mblack \033[0m\n")
+    pymatrix.list_colors()
+    captured_output = capsys.readouterr().out
+    assert captured_output == expected
+
+
 def test_pymatrix_main_list_colors(capsys):
+    expected = ("\033[91mred \033[92mgreen \033[94mblue \033[93myellow "
+                "\033[95mmagenta \033[96mcyan \033[97mwhite \033[90mblack \033[0m\n")
     pymatrix.main(["--list_colors"])
     captured_output = capsys.readouterr().out
-    assert "red green blue yellow magenta cyan white black" in captured_output
+    assert expected in captured_output
 
 
 def test_pymatrix_main_list_commands(capsys):

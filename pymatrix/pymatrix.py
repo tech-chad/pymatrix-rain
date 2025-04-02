@@ -869,6 +869,15 @@ def int_between_1_and_255(value: str) -> int:
         raise argparse.ArgumentTypeError(msg)
 
 
+def list_colors() -> None:
+    color_dict = {"red": "\033[91m", "green": "\033[92m", "blue": "\033[94m", "cyan": "\033[96m",
+                  "yellow": "\033[93m", "magenta": "\033[95m", "white": "\033[97m", "black": "\033[90m"}
+    colors = list(CURSES_COLOR.keys())
+    for c in colors:
+        print(f"{color_dict[c]}{c} ", end="")
+    print("\033[0m")
+
+
 def display_commands() -> None:
     print("Commands available during run")
     print("0 - 9  Delay time (0-Fast, 4-Default, 9-Slow)")
@@ -1001,7 +1010,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     args = argument_parsing(argv)
 
     if args.list_colors:
-        print(*CURSES_COLOR.keys())
+        list_colors()
         return
     if args.list_commands:
         display_commands()
