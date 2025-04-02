@@ -5,6 +5,7 @@ import curses
 import datetime
 import importlib.metadata
 import itertools
+import os
 import random
 import time
 
@@ -380,6 +381,8 @@ class Matrix:
             return True
         elif self.args.disable_keys:
             return False
+        # elif ch == 27:
+        #     return False
         if ch in WAKE_UP_KEYS:
             self.keys_pressed.append(ch)
             if self.keys_pressed == WAKE_UP_KEYS:
@@ -1017,6 +1020,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         return
 
     time.sleep(args.start_timer)
+    os.environ.setdefault('ESCDELAY', '25')  # 25 milliseconds
     try:
         curses.wrapper(Matrix, args)
     except KeyboardInterrupt:

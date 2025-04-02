@@ -1255,6 +1255,17 @@ def test_pymatrix_old_scroll_key():
         h.await_text("T")
 
 
+def test_pymatrix_escape_key_delay():
+    with Runner(*pymatrix_run("--test_mode")) as h:
+        h.default_timeout = 3
+        h.await_text("T")
+        h.press("Escape")
+        sc = h.screenshot()
+        sleep(1)
+        assert h.screenshot() != sc
+
+
+
 def test_build_character_set_zero():
     args = pymatrix.argparse.Namespace(
         ext=False, ext_only=False, katakana=False, Katakana_only=False,
