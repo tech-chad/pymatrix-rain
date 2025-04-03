@@ -381,8 +381,6 @@ class Matrix:
             return True
         elif self.args.disable_keys:
             return False
-        # elif ch == 27:
-        #     return False
         if ch in WAKE_UP_KEYS:
             self.keys_pressed.append(ch)
             if self.keys_pressed == WAKE_UP_KEYS:
@@ -593,6 +591,8 @@ class Matrix:
             self.args.Katakana_only = False
             self.args.katakana = not self.args.katakana
             self.char_set = build_character_set2(self.args)
+        elif ch == 4:  # ctrl-d
+            self.args.disable_keys = True
 
     def handle_wake_up(self) -> None:
         if self.wake_up_time <= 0:
@@ -906,6 +906,7 @@ def display_commands() -> None:
     print("w      Clear the screen, wait 2 seconds and restart")
     print("j      Toggle italic text")
     print("s      Toggle old school scrolling down only")
+    print("ctrl-d Disable option keys. q will still quit The Matrix.")
     print("up arrow    Matrix scrolls down to up")
     print("down arrow  Matrix scrolls up to down (default)")
     print("right arrow Matrix scrolls from left to right")

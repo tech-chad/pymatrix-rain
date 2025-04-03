@@ -36,6 +36,7 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>w</kbd>** = *Clear the screen, wait 2 seconds and start*
 - **<kbd>j</kbd>** = *Toggle italic text*
 - **<kbd>s</kbd>** = *Toggle old style matrix scrolling (down only)*
+- **<kbd>ctrl-d</kbd>** = *Disable option keys. q will still quit The Matrix*
 - **<kbd>up arrow</kbd>** = *Matrix scrolling up*
 - **<kbd>down arrow</kbd>** = *Matrix scrolling down (Default)*
 - **<kbd>left arrow</kbd>** = *Matrix scrolls from right to left*

@@ -1265,6 +1265,27 @@ def test_pymatrix_escape_key_delay():
         assert h.screenshot() != sc
 
 
+def test_pymatrix_disable_key_ctrl_d():
+    with Runner(*pymatrix_run("--test_mode")) as h:
+        h.await_text("T")
+        h.press("^d")
+        h.await_text("T")
+        h.press("K")
+        sleep(0.5)
+        h.await_text("T")
+        sc = h.screenshot()
+        assert "ﾎ" not in sc
+        assert "T" in sc
+
+
+def test_pymatrix_disable_key_ctrl_d_quit():
+    with Runner(*pymatrix_run("--test_mode")) as h:
+        h.await_text("T")
+        h.press("^d")
+        h.await_text("T")
+        h.press("q")
+        h.await_exit()
+
 
 def test_build_character_set_zero():
     args = pymatrix.argparse.Namespace(
