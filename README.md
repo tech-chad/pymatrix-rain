@@ -1,6 +1,8 @@
 # pymatrix-rain
 Matrix rain effect using python 3 and curses.
 
+Support Python 3.8+
+
 ### How to Download
  >pip install pymatrix-rain
  
@@ -36,7 +38,7 @@ Matrix rain effect using python 3 and curses.
 - **<kbd>w</kbd>** = *Clear the screen, wait 2 seconds and start*
 - **<kbd>j</kbd>** = *Toggle italic text*
 - **<kbd>s</kbd>** = *Toggle old style matrix scrolling (down only)*
-- **<kbd>ctrl-d</kbd>** = *Disable option keys. q will still quit The Matrix*
+- **<kbd>ctrl-d</kbd>** = *Disable option keys. Can still use **<kbd>Q</kbd>** to quit.*
 - **<kbd>up arrow</kbd>** = *Matrix scrolling up*
 - **<kbd>down arrow</kbd>** = *Matrix scrolling down (Default)*
 - **<kbd>left arrow</kbd>** = *Matrix scrolls from right to left*
@@ -99,4 +101,7 @@ Extended Characters
 
 Italic Mode
 ![matrix8.png](https://i.fluffy.cc/5jBjfXT0c7Vjl0gX1xkMT7nq3wXNwkNV.png)
+
+Custom background character
+![bg_char.png](https://i.fluffy.cc/g76DK84hVVlGNJf1324tL1fKP1Zhn5gC.png)
 
