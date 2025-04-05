@@ -1,5 +1,13 @@
 # Change Log
 
+## 1.4.0 - 4/5/25
+
+- Dropped support for 3.7. Supports Python 3.8+
+
+### Features
+- Option to disable keys by using ctrl-d. Q will still quit The Matrix
+- Option to set a custom background character by using --bg_char
+
 ## 1.3.0 - 6/21/23
 
 ### Features
