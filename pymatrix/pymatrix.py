@@ -68,6 +68,7 @@ CURSES_CH_CODES_COLOR = {114: "red", 82: "red", 116: "green", 84: "green",
                          20: "green", 25: "blue", 21: "yellow", 9: "magenta",
                          15: "cyan", 16: "white", 27: "black", 91: "black",
                          123: "black"}
+DEFAULT_BG_CHAR = " "
 DEFAULT_CYCLE_COLOR_DELAY = 500
 WAKE_UP_PAIR = 21
 WAKE_UP_KEYS = [119, 65, 107, 101]
@@ -290,7 +291,7 @@ class Matrix:
         curses.curs_set(0)  # Set the cursor to off.
         self.screen.timeout(0)  # Turn blocking off for screen.getch().
         self.setup_colors()
-        self.screen.bkgd(" ", curses.color_pair(1))
+        self.screen.bkgd(self.args.bg_char, curses.color_pair(1))
         self.color_cycle = itertools.cycle([1, 2, 3, 4, 5, 6])
         self.color_cycle_count = itertools.count(start=0, step=1)
         self.color_cycle_delay = DEFAULT_CYCLE_COLOR_DELAY
@@ -388,7 +389,7 @@ class Matrix:
                 while self.screen.getch() != -1:  # clears out the buffer
                     pass
                 self.keys_pressed = []
-                self.screen.bkgd(" ", curses.color_pair(1))
+                self.screen.bkgd(self.args.bg_char, curses.color_pair(1))
                 return False
             elif len(self.keys_pressed) >= 4:
                 self.keys_pressed = []
@@ -421,7 +422,7 @@ class Matrix:
                                 self.args.over_ride)
             curses_lead_color(self.args.lead_color, self.args.background,
                               self.args.over_ride)
-            self.screen.bkgd(" ", curses.color_pair(1))
+            self.screen.bkgd(self.args.bg_char, curses.color_pair(1))
         elif ch == 97:  # a
             self.args.async_scroll = not self.args.async_scroll
         elif ch == 109:  # m
@@ -559,6 +560,8 @@ class Matrix:
                 self.spacer = 1
                 self.x_list = [x for x in range(0, curses.COLS, self.spacer)]
             self.char_set = build_character_set2(self.args)
+            self.args.bg_char = DEFAULT_BG_CHAR
+            self.screen.bkgd(self.args.bg_char, curses.color_pair(1))
         elif (self.color_mode == "cycle" and
               ch in CURSES_CH_CODES_CYCLE_DELAY.keys()):
             self.color_cycle_delay = 100 * CURSES_CH_CODES_CYCLE_DELAY[ch]
@@ -600,7 +603,7 @@ class Matrix:
             self.wake_up_time = random.randint(2000, 3000)
             while self.screen.getch() != -1:  # clears out the buffer
                 ...
-            self.screen.bkgd(" ", curses.color_pair(1))
+            self.screen.bkgd(self.args.bg_char, curses.color_pair(1))
         else:
             self.wake_up_time -= 1
 
@@ -638,7 +641,7 @@ class Matrix:
                 self.screen.addstr(lead[0], lead[1], lead[2],
                               curses.color_pair(10) + bold + italic)
             if remove := line.delete_last():
-                self.screen.addstr(remove[0], remove[1], " ")
+                self.screen.addstr(remove[0], remove[1], self.args.bg_char)
                 if line.x not in self.x_list:
                     self.x_list.append(line.x)
             location_char_list = line.get_next()
@@ -659,7 +662,7 @@ class Matrix:
                 continue
             if remove_line := line.delete_last():
                 if self.args.do_not_clear is False:
-                    self.screen.addstr(remove_line[0], remove_line[1], " ")
+                    self.screen.addstr(remove_line[0], remove_line[1], self.args.bg_char)
                 if line.x not in self.x_list:
                     self.x_list.append(line.x)
 
@@ -872,6 +875,17 @@ def int_between_1_and_255(value: str) -> int:
         raise argparse.ArgumentTypeError(msg)
 
 
+def background_character(value: str) -> str:
+    """
+    Used by argparse. Checks to see if only one character was entered
+    """
+    msg = f"{value} is invalid. Please enter only one character"
+    if len(value) == 1:
+        return value
+    else:
+        raise argparse.ArgumentTypeError(msg)
+
+
 def list_colors() -> None:
     color_dict = {"red": "\033[91m", "green": "\033[92m", "blue": "\033[94m", "cyan": "\033[96m",
                   "yellow": "\033[93m", "magenta": "\033[95m", "white": "\033[97m", "black": "\033[90m"}
@@ -961,6 +975,10 @@ def argument_parsing(
                         help="Show only zero and ones. Binary")
     parser.add_argument("--background", type=color_type, default="black",
                         help="set background color. Default is black.")
+    parser.add_argument("--bg_char", type=background_character,
+                        default=DEFAULT_BG_CHAR,
+                        help="Enter one character to use as background."
+                             " May need to use '' around the character")
     parser.add_argument("-v", "--reverse", action="store_true",
                         help="Reverse the matrix. "
                              "The matrix scrolls up (vertical)")

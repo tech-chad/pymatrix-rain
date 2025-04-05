@@ -275,6 +275,15 @@ def test_argument_paring_old_school_scrolling(test_value, expected_result):
     assert result.old_school_scrolling == expected_result
 
 
+@pytest.mark.parametrize("test_value, expect_result", [
+    ([], " "), (["--bg_char", "-"], "-"), (["--bg_char", "+"], "+"),
+    (["--bg_char", "*"], "*")
+])
+def test_argument_parsing_background_character(test_value, expect_result):
+    result = pymatrix.argument_parsing(test_value)
+    assert result.bg_char == expect_result
+
+
 # testing helper functions
 @pytest.mark.parametrize("test_values, expected_results", [
     ("0", 0), ("1", 1), ("2", 2), ("3", 3), ("4", 4),
@@ -345,3 +354,20 @@ def test_int_between_1_and_255(test_value, expected_result):
 def test_int_between_1_and_255_error(test_values):
     with pytest.raises(pymatrix.argparse.ArgumentTypeError):
         pymatrix.int_between_1_and_255(test_values)
+
+
+@pytest.mark.parametrize("value", [
+    " ", "-", "+", "_", "?", "=", "X", "6", "["
+])
+def test_background_character(value):
+    result = pymatrix.background_character(value)
+    assert result == value
+
+
+@pytest.mark.parametrize("test_value", [
+    "--", "__", "xy", "11", "x1", " 1", "=-", "[]"
+])
+def test_background_character_error(test_value):
+    with pytest.raises(pymatrix.argparse.ArgumentTypeError):
+        pymatrix.background_character(test_value)
+

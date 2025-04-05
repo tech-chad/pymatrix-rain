@@ -1287,6 +1287,124 @@ def test_pymatrix_disable_key_ctrl_d_quit():
         h.await_exit()
 
 
+def test_pymatrix_background_character_default_character():
+    with Runner(*pymatrix_run("--test_mode",)) as h:
+        h.await_text("T")
+        h.await_text(" ")
+
+
+@pytest.mark.parametrize("test_value", [
+    "_", "+", "*", "@", "$", ".", "-"
+])
+def test_pymatrix_background_character(test_value):
+    with Runner(*pymatrix_run("--bg_char", test_value,
+                              "--test_mode")) as h:
+        h.await_text("T")
+        h.await_text(test_value)
+        assert " " not in h.screenshot()
+
+
+@pytest.mark.parametrize("test_value", [
+    "_", "+", "*", "@", "$", ".", "-"
+])
+def test_pymatrix_background_character_old_scrolling(test_value):
+    with Runner(*pymatrix_run("--bg_char", test_value,
+                              "--test_mode", "-o")) as h:
+        h.await_text("T")
+        h.await_text(test_value)
+        assert " " not in h.screenshot()
+
+
+@pytest.mark.parametrize("test_value", [
+    "*", "|", "!", "<", "#", ">", "$", "^"
+])
+def test_pymatrix_background_character_quotes(test_value):
+    with Runner("bash") as h:
+        h.await_text("$")
+        h.write("clear")
+        h.press("Enter")
+        h.write(". .venv/bin/activate")
+        h.press("Enter")
+        h.await_text("(.venv)")
+        h.write(f"pymatrix-rain --test_mode --bg_char '{test_value}'")
+        h.press("Enter")
+        h.await_text("T")
+        h.await_text(test_value)
+        assert " " not in h.screenshot()
+
+
+def test_pymatrix_background_character_after_wake_up_typed():
+    with Runner(*pymatrix_run("--test_mode", "--bg_char", ".")) as h:
+        h.await_text("T")
+        h.default_timeout = 10
+        h.write("w")
+        h.write("A")
+        h.write("k")
+        h.write("e")
+        h.await_text("Wake up, Neo...")
+        h.await_text("Knock, knock, Neo.")
+        h.await_text("T")
+        h.await_text(".")
+        assert " " not in h.screenshot()
+
+
+def test_matrix_background_character_after_wake_up_time():
+    with Runner(*pymatrix_run("--test_mode",
+                              "--bg_char", ".", "--wakeup")) as h:
+        h.await_text("T")
+        h.default_timeout = 10
+        h.await_text("Wake up, Neo...")
+        h.await_text("Knock, knock, Neo.")
+        h.await_text("T")
+        h.await_text(".")
+        assert " " not in h.screenshot()
+
+
+def test_matrix_background_character_reset_to_default():
+    test_value = "."
+    with Runner(*pymatrix_run("--bg_char", test_value,
+                              "--test_mode")) as h:
+        h.await_text("T")
+        h.await_text(test_value)
+        assert " " not in h.screenshot()
+        h.press("d")
+        h.await_text("T")
+        h.await_text(" ")
+        assert test_value not in h.screenshot()
+
+
+@pytest.mark.parametrize("test_value", [
+    "%r", "EE", "bg", "++", "++", "test", "3453", "__"
+])
+def test_pymatrix_background_character_only_one_character(test_value):
+    with Runner("bash") as h:
+        h.await_text("$")
+        h.write("clear")
+        h.press("Enter")
+        h.write(". .venv/bin/activate")
+        h.press("Enter")
+        h.await_text("(.venv)")
+        h.write(f"pymatrix-rain --test_mode --bg_char {test_value}")
+        h.press("Enter")
+        h.await_text(f"{test_value} is invalid. Please enter only one character")
+
+
+@pytest.mark.parametrize("test_value", [
+    "**", "R-", "||", "|R", "##", "test", "<<", ">>"
+])
+def test_pymatrix_background_character_only_one_character_quoted(test_value):
+    with Runner("bash") as h:
+        h.await_text("$")
+        h.write("clear")
+        h.press("Enter")
+        h.write(". .venv/bin/activate")
+        h.press("Enter")
+        h.await_text("(.venv)")
+        h.write(f"pymatrix-rain --test_mode --bg_char '{test_value}'")
+        h.press("Enter")
+        h.await_text(f"{test_value} is invalid. Please enter only one character")
+
+
 def test_build_character_set_zero():
     args = pymatrix.argparse.Namespace(
         ext=False, ext_only=False, katakana=False, Katakana_only=False,
