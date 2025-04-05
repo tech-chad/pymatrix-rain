@@ -1,9 +1,21 @@
 from unittest import mock
+import os
 import pytest
+import sys
 from hecate import Runner
 from time import sleep
 
 from pymatrix import pymatrix
+
+
+@pytest.fixture(autouse=True, scope='session')
+def _pytest_readline_workaround():
+    # Work around for side effect when pytest imports readline.
+    # Side effect is setting environment variables columns and lines.
+    assert 'readline' in sys.modules
+
+    os.environ['COLUMNS'] = os.environ['LINES'] = ''
+    del os.environ['COLUMNS'], os.environ['LINES']
 
 
 def pymatrix_run(*args):
@@ -79,7 +91,6 @@ def test_pymatrix_screen_width_start_fail(size):
         h.await_text("Error screen width is to narrow.")
 
 
-@pytest.mark.skip(reason="Resize works but test is broken")
 def test_pymatrix_screen_resize_adjust_width():
     with Runner(*pymatrix_run("--test_mode"), width=50, height=50) as h:
         h.await_text("T")
@@ -115,9 +126,8 @@ def test_pymatrix_screen_height_start_fail(size):
         h.await_text("Error screen height is to short.")
 
 
-@pytest.mark.skip(reason="Resize works but test is broken")
 def test_pymatrix_screen_resize_adjust_height():
-    with Runner(*pymatrix_run("--test_mode"), width=50, height=20) as h:
+    with Runner(*pymatrix_run("--test_mode"), width=50, height=50) as h:
         sleep(0.1)
         h.default_timeout=5
         h.await_text("T")
@@ -132,9 +142,7 @@ def test_pymatrix_screen_resize_adjust_height():
         assert "Error screen height is to short." in sc
 
 
-@pytest.mark.skip(reason="Resize works but test is broken")
 def test_pymatrix_screen_resize_height_too_short():
-    # with Runner(*pymatrix_run("--test_mode"), width=50, height=20) as h:
     with Runner("bash", width=50, height=11) as h:
         h.default_timeout = 4
         h.await_text("$")
@@ -1574,7 +1582,7 @@ def test_build_character_set_old_scrolling_update_list_test():
         ext=False, ext_only=False, katakana=False, Katakana_only=False,
         zero_one=False, test_mode=True
     )
-    test_set = pymatrix.build_character_set2(args)
+    pymatrix.build_character_set2(args)
     assert pymatrix.OldScrollingLine.old_scroll_chr_list == ["T"]
 
 
